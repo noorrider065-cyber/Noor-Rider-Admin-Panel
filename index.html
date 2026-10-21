@@ -1,262 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-
-    <!-- CHANGE: Edit the app name here -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Noor Rider Admin Panel</title>
-
-    <style>
-        /* CHANGE: Edit the main app colors here */
-        body {
-            font-family: Arial, sans-serif;
-            background: #f2f5f8;
-            margin: 0;
-            padding: 20px;
-        }
-
-        /* CHANGE: Edit the panel design here */
-        .panel {
-            max-width: 650px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-        }
-
-        h1, h2 {
-            color: #087443;
-        }
-
-        input, select, button {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            box-sizing: border-box;
-        }
-
-        button {
-            background: #087443;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        .section {
-            border-top: 1px solid #ddd;
-            margin-top: 20px;
-            padding-top: 12px;
-        }
-
-        .note {
-            color: #666;
-            font-size: 13px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Noor Rider Admin Penel</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #10151d;
+      color: white;
+    }
+    header {
+      background: #ffc107;
+      color: #111;
+      padding: 22px;
+      text-align: center;
+    }
+    header h1 { margin: 0; }
+    main { max-width: 650px; margin: auto; padding: 18px; }
+    .card {
+      background: #1c2532;
+      border-radius: 14px;
+      padding: 20px;
+      margin: 15px 0;
+    }
+    h2 { color: #ffc107; }
+    input, select, button {
+      width: 100%;
+      padding: 13px;
+      margin: 7px 0;
+      border-radius: 8px;
+      border: none;
+      font-size: 15px;
+    }
+    button {
+      background: #ffc107;
+      color: #111;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .hidden { display: none; }
+    .note { color: #b9c3d0; font-size: 13px; }
+  </style>
 </head>
-
 <body>
-<div class="panel">
+  <header>
+    <h1>🏍️ Okay Rider</h1>
+    <p>Ride Free. Ride Smart.</p>
+  </header>
 
-    <!-- CHANGE: App heading -->
-    <h1>Noor Rider</h1>
-    <p>Driver and Passenger Wallet System</p>
+  <main>
+    <section class="card">
+      <h2>Welcome to Okay Rider</h2>
+      <p>One app for motorcycle drivers and passengers.</p>
+      <label for="role">Choose your role</label>
+      <select id="role">
+        <option value="passenger">Passenger</option>
+        <option value="driver">Driver</option>
+      </select>
+      <input id="name" placeholder="Enter your full name">
+      <input id="phone" placeholder="Mobile number">
+      <input id="referral" placeholder="Referral code (optional)">
+      <button onclick="register()">Continue</button>
+      <p id="message" aria-live="polite"></p>
+    </section>
 
-    <!-- DEMO ONLY: This is not secure admin authentication.
-         Production admin access must be verified by a backend. -->
-    <div class="section">
-        <h2>Admin Login Demo</h2>
-        <input id="adminName" placeholder="Admin username">
-        <input id="adminPassword" type="password"
-               placeholder="Demo password">
-        <button onclick="loginDemo()">Demo Admin Login</button>
-        <p id="loginMessage" class="note"></p>
-    </div>
+    <section class="card">
+      <h2>🎁 Referral Program</h2>
+      <p>Proposed bonus: Rs. 2,000 for the referring user and Rs. 2,000 for the referred user.</p>
+      <p class="note">Bonuses require server-side referral verification and approval.</p>
+    </section>
 
-    <!-- DEMO ONLY: Hide admin controls until demo login.
-         Real access control must be enforced on the server. -->
-    <div id="adminPanel" hidden>
+    <section class="card">
+      <h2>💳 Payout Method</h2>
+      <select id="payout">
+        <option>JazzCash</option>
+        <option>Easypaisa</option>
+        <option>Bank Account</option>
+      </select>
+      <input id="account" placeholder="Account holder name">
+      <input id="accountNumber" placeholder="Wallet or bank account number">
+      <button onclick="savePayout()">Save payout details</button>
+      <p id="payoutMessage" aria-live="polite"></p>
+    </section>
 
-        <div class="section">
-            <h2>Referral Bonus</h2>
+    <section class="card">
+      <h2>🏍️ Driver Wallet</h2>
+      <p>Top-ups are handled manually by the admin.</p>
+      <p id="balance">Displayed balance: Rs. 0</p>
+      <p class="note">This is a demo balance, not a real wallet balance.</p>
+    </section>
 
-            <!-- CHANGE: Default referral bonus amount -->
-            <label>Bonus amount (PKR)</label>
-            <input id="bonusAmount" type="number" value="5000">
+    <section class="card">
+      <h2>🔐 Admin Access</h2>
+      <p class="note">Admin login must be connected to a secure backend.
+      Do not use a password embedded in frontend code.</p>
+      <input id="adminEmail" type="email" placeholder="Admin email">
+      <input id="adminPassword" type="password" placeholder="Admin password">
+      <button onclick="adminLogin()">Admin Login</button>
+      <p id="adminMessage" aria-live="polite"></p>
+      <div id="adminPanel" class="hidden">
+        <h3>Admin Control Panel (Demo)</h3>
+        <p>Review referral requests and driver top-up requests in the secure backend.</p>
+      </div>
+    </section>
+  </main>
 
-            <label>Driver wallet ID</label>
-            <input id="driverId" placeholder="Enter driver ID">
+  <script>
+    function register() {
+      const name = document.getElementById("name").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const role = document.getElementById("role").value;
 
-            <button onclick="showReferralMessage()">
-                Demo: Issue Referral Bonus
-            </button>
-            <p id="referralMessage"></p>
-        </div>
+      if (!name || !phone) {
+        document.getElementById("message").textContent =
+          "Please enter your name and mobile number.";
+        return;
+      }
 
-        <div class="section">
-            <h2>Driver Wallet Top-Up</h2>
-
-            <!-- CHANGE: Add your payment methods here -->
-            <label>Payment method</label>
-            <select id="paymentMethod">
-                <option>JazzCash</option>
-                <option>Easypaisa</option>
-                <option>Bank Transfer</option>
-            </select>
-
-            <label>Top-up amount (PKR)</label>
-            <input id="topupAmount" type="number"
-                   placeholder="Enter amount">
-
-            <label>Transaction reference</label>
-            <input id="transactionRef"
-                   placeholder="Enter transaction ID">
-
-            <label>Payment screenshot</label>
-            <input id="paymentScreenshot" type="file"
-                   accept="image/*">
-
-            <button onclick="submitTopupDemo()">
-                Submit Top-Up Request
-            </button>
-
-            <p id="topupMessage"></p>
-        </div>
-
-        <div class="section">
-            <h2>Payment Requests</h2>
-
-            <!-- DEMO ONLY: Real requests must be loaded from a database -->
-            <p id="requestStatus">
-                No demo request submitted yet.
-            </p>
-
-            <button onclick="reviewPaymentDemo('Approved')">
-                Demo: Approve Payment
-            </button>
-
-            <button onclick="reviewPaymentDemo('Rejected')">
-                Demo: Reject Payment
-            </button>
-        </div>
-
-        <div class="section">
-            <h2>Driver Withdrawal</h2>
-
-            <!-- CHANGE: Supported withdrawal options -->
-            <select id="withdrawMethod">
-                <option>JazzCash</option>
-                <option>Easypaisa</option>
-                <option>Bank Account</option>
-            </select>
-
-            <input id="withdrawAmount" type="number"
-                   placeholder="Withdrawal amount (PKR)">
-
-            <button onclick="withdrawDemo()">
-                Demo: Submit Withdrawal
-            </button>
-
-            <p id="withdrawMessage"></p>
-        </div>
-
-        <div class="section">
-            <h2>App Roles</h2>
-            <p>Driver: rides, wallet, top-ups and withdrawals.</p>
-            <p>Passenger: book rides and view ride history.</p>
-            <p>Admin: manage payments, bonuses and users.</p>
-        </div>
-    </div>
-</div>
-
-<script>
-    // DEMO ONLY: These example credentials are not secure.
-    // Replace with server-side authentication before production.
-    function loginDemo() {
-        const username = document.getElementById("adminName").value;
-        const password = document.getElementById("adminPassword").value;
-
-        if (username === "admin" && password === "1234") {
-            document.getElementById("adminPanel").hidden = false;
-            document.getElementById("loginMessage").textContent =
-                "Demo login successful.";
-        } else {
-            document.getElementById("loginMessage").textContent =
-                "Incorrect demo credentials.";
-        }
+      document.getElementById("message").textContent =
+        "Demo only: " + name + ", your " + role +
+        " registration needs a secure backend.";
     }
 
-    // DEMO ONLY: This message does not actually credit a wallet.
-    function showReferralMessage() {
-        const amount = Number(document.getElementById("bonusAmount").value);
-        const driver = document.getElementById("driverId").value.trim();
+    function savePayout() {
+      const account = document.getElementById("account").value.trim();
+      const number = document.getElementById("accountNumber").value.trim();
 
-        if (!driver || amount <= 0 || !Number.isFinite(amount)) {
-            alert("Enter a driver ID and a valid bonus amount.");
-            return;
-        }
-
-        document.getElementById("referralMessage").textContent =
-            "Demo only: PKR " + amount +
-            " referral bonus prepared for driver " + driver +
-            ". No real wallet was credited.";
+      document.getElementById("payoutMessage").textContent =
+        account && number
+          ? "Demo only: payout details have not been saved to a server."
+          : "Please enter account holder name and account number.";
     }
 
-    // DEMO ONLY: A file is selected locally, not uploaded to a server.
-    function submitTopupDemo() {
-        const amount = Number(document.getElementById("topupAmount").value);
-        const reference =
-            document.getElementById("transactionRef").value.trim();
-        const screenshot =
-            document.getElementById("paymentScreenshot").files[0];
-
-        if (amount <= 0 || !Number.isFinite(amount) ||
-            !reference || !screenshot) {
-            alert("Enter an amount, transaction reference, and screenshot.");
-            return;
-        }
-
-        document.getElementById("requestStatus").textContent =
-            "DEMO PENDING — PKR " + amount +
-            ", " + document.getElementById("paymentMethod").value +
-            ", reference: " + reference;
-
-        document.getElementById("topupMessage").textContent =
-            "Demo request created. No real payment was verified.";
+    async function adminLogin() {
+      document.getElementById("adminPanel").classList.add("hidden");
+      document.getElementById("adminMessage").textContent =
+        "Admin login is not connected. Configure server-side authentication before enabling access.";
     }
-
-    // DEMO ONLY: Approval changes only the displayed text.
-    // Real approval must verify the payment and credit the wallet once.
-    function reviewPaymentDemo(status) {
-        const request = document.getElementById("requestStatus");
-
-        if (request.textContent.startsWith("DEMO PENDING")) {
-            request.textContent = "DEMO " + status +
-                ". No real wallet balance has changed.";
-        } else {
-            alert("Submit a demo top-up request first.");
-        }
-    }
-
-    // DEMO ONLY: This does not transfer money or reserve a real balance.
-    function withdrawDemo() {
-        const amount = Number(
-            document.getElementById("withdrawAmount").value
-        );
-
-        if (amount <= 0 || !Number.isFinite(amount)) {
-            alert("Enter a valid withdrawal amount.");
-            return;
-        }
-
-        document.getElementById("withdrawMessage").textContent =
-            "Demo withdrawal request: PKR " + amount +
-            " via " + document.getElementById("withdrawMethod").value +
-            ". No real payment was sent.";
-    }
-</script>
+  </script>
 </body>
-  </html>
-                                       .
+          </html>
