@@ -136,9 +136,14 @@
     }
 
     async function adminLogin() {
-      document.getElementById("adminPanel").classList.add("hidden");
-      document.getElementById("adminMessage").textContent =
-        "Admin login is not connected. Configure server-side authentication before enabling access.";
+  const message = document.getElementById("adminMessage");
+
+  if (message) {
+    message.textContent =
+      "Admin login is not configured yet. Please connect Firebase Authentication or Supabase Auth.";
+  }
+}
+    
     }
   </script>
 </body>
