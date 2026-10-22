@@ -95,10 +95,9 @@
 
     <section class="card">
       <h2>🔐 Admin Access</h2>
-      <p class="note">Admin login must be connected to a secure backend.
-      Do not use a password embedded in frontend code.</p>
-      <input id="adminEmail" type="email" placeholder="Admin email">
-      <input id="adminPassword" type="password" placeholder="Admin password">
+    
+      <input id="adminEmail" type="noorrider065@gmail.com" placeholder="Admin email">
+      <input id="adminPassword" type="223$321$#@34" placeholder="Admin password">
       <button onclick="adminLogin()">Admin Login</button>
       <p id="adminMessage" aria-live="polite"></p>
       <div id="adminPanel" class="hidden">
@@ -134,17 +133,5 @@
           ? "Demo only: payout details have not been saved to a server."
           : "Please enter account holder name and account number.";
     }
-
-    async function adminLogin() {
-  const message = document.getElementById("adminMessage");
-
-  if (message) {
-    message.textContent =
-      "Admin login is not configured yet. Please connect Firebase Authentication or Supabase Auth.";
-  }
-}
-    
-    }
-  </script>
 </body>
           </html>
