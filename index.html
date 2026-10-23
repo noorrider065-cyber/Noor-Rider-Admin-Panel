@@ -1,280 +1,308 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Noor Rider Admin Panel</title>
-  <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: Arial, sans-serif; background: #10151d; color: #fff; }
-    header { background: #ffc107; color: #111; padding: 22px 16px; text-align: center; }
-    header h1 { margin: 0; }
-    main { max-width: 720px; margin: auto; padding: 18px; }
-    .card { background: #1c2532; border-radius: 14px; padding: 20px; margin: 15px 0; }
-    h2 { color: #ffc107; margin-top: 0; }
-    label { display: block; margin-top: 8px; }
-    input, select, button { width: 100%; padding: 13px; margin: 7px 0; border-radius: 8px; border: 1px solid #394657; font-size: 15px; }
-    input, select { background: #fff; color: #111; }
-    button { background: #ffc107; color: #111; border: 0; font-weight: bold; cursor: pointer; }
-    button.secondary { background: #344255; color: #fff; }
-    button:disabled { opacity: .6; cursor: wait; }
-    .note { color: #b9c3d0; font-size: 13px; line-height: 1.5; }
-    .message { white-space: pre-wrap; line-height: 1.5; overflow-wrap: anywhere; }
-    .hidden { display: none !important; }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .record { background: #111923; border-radius: 8px; padding: 12px; margin: 8px 0; overflow-wrap: anywhere; }
-    @media (max-width: 520px) { .row { grid-template-columns: 1fr; } }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Noor Rider Admin Panel</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#10151d;color:#fff}
+header{background:#ffc107;color:#111;padding:22px 16px;text-align:center}
+header h1{margin:0}
+main{max-width:720px;margin:auto;padding:18px}
+.card{background:#1c2532;border-radius:14px;padding:20px;margin:15px 0}
+h2{color:#ffc107;margin-top:0}
+label{display:block;margin-top:8px}
+input,select,button{width:100%;padding:13px;margin:7px 0;border-radius:8px;border:1px solid #394657;font-size:15px}
+input,select{background:#fff;color:#111}
+button{background:#ffc107;color:#111;border:0;font-weight:bold;cursor:pointer}
+button.secondary{background:#344255;color:#fff}
+button:disabled{opacity:.6}
+.note{color:#b9c3d0;font-size:13px;line-height:1.5}
+.message{white-space:pre-wrap;line-height:1.5;overflow-wrap:anywhere}
+.hidden{display:none!important}
+</style>
 </head>
 <body>
 <header><h1>🏍️ Noor Rider Admin Panel</h1><p>Ride Free. Ride Smart.</p></header>
 <main>
-  <section class="card">
-    <h2>Create account</h2>
-    <p>Register as a motorcycle passenger or driver.</p>
-    <label for="role">Choose your role</label>
-    <select id="role"><option value="passenger">Passenger</option><option value="driver">Driver</option></select>
-    <label for="name">Full name</label><input id="name" autocomplete="name" placeholder="Enter your full name">
-    <label for="phone">Mobile number</label><input id="phone" autocomplete="tel" placeholder="Mobile number">
-    <label for="email">Email address</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com">
-    <label for="password">Password (at least 8 characters)</label><input id="password" type="password" autocomplete="new-password" minlength="8" placeholder="Create a password">
-    <label for="referral">Referral code (optional)</label><input id="referral" placeholder="Referral code">
-    <button id="registerButton" onclick="registerUser()">Create account</button>
-    <p class="note">Email confirmation may be required. Use a real email you can access.</p>
-    <p id="registerMessage" class="message" aria-live="polite"></p>
-  </section>
+<section class="card">
+<h2>Create account</h2>
+<p>Register as a motorcycle passenger or driver.</p>
+<label for="role">Choose your role</label>
+<select id="role"><option value="passenger">Passenger</option><option value="driver">Driver</option></select>
+<label for="name">Full name</label><input id="name" autocomplete="name" placeholder="Enter your full name">
+<label for="phone">Mobile number</label><input id="phone" autocomplete="tel" placeholder="Mobile number">
+<label for="email">Email address</label><input id="email" type="email" placeholder="you@example.com">
+<label for="password">Password (at least 8 characters)</label><input id="password" type="password" minlength="8" placeholder="Create a password">
+<label for="referral">Referral code (optional)</label><input id="referral" placeholder="Referral code">
+<button id="registerButton" type="button" onclick="registerUser()">Create account</button>
+<p class="note">Email confirmation may be required. Use an email you can access.</p>
+<p id="registerMessage" class="message" aria-live="polite"></p>
+</section>
 
-  <section class="card">
-    <h2>🔐 Sign in</h2>
-    <label for="loginEmail">Email address</label><input id="loginEmail" type="email" autocomplete="username" placeholder="Email address">
-    <label for="loginPassword">Password</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Password">
-    <button id="loginButton" onclick="signIn()">Sign in</button>
-    <button class="secondary hidden" id="signOutButton" onclick="signOut()">Sign out</button>
-    <p id="authMessage" class="message" aria-live="polite"></p>
-  </section>
+<section class="card">
+<h2>🔐 Sign in</h2>
+<label for="loginEmail">Email address</label><input id="loginEmail" type="email" placeholder="Email address">
+<label for="loginPassword">Password</label><input id="loginPassword" type="password" placeholder="Password">
+<button id="loginButton" type="button" onclick="signIn()">Sign in</button>
+<button class="secondary hidden" id="signOutButton" type="button" onclick="signOut()">Sign out</button>
+<p id="authMessage" class="message" aria-live="polite"></p>
+</section>
 
-  <section class="card hidden" id="accountCard">
-    <h2>👤 My account</h2>
-    <p id="accountInfo" class="message"></p>
-    <p>Your referral code: <strong id="myReferral">—</strong></p>
-  </section>
+<section class="card hidden" id="accountCard">
+<h2>👤 My account</h2><p id="accountInfo" class="message"></p>
+<p>Your referral code: <strong id="myReferral">—</strong></p>
+</section>
 
-  <section class="card hidden" id="payoutCard">
-    <h2>💳 Payout method</h2>
-    <label for="payout">Payment method</label>
-    <select id="payout"><option>JazzCash</option><option>Easypaisa</option><option>Bank Account</option></select>
-    <label for="account">Account holder name</label><input id="account" autocomplete="name" placeholder="Account holder name">
-    <label for="accountNumber">Wallet or bank account number</label><input id="accountNumber" autocomplete="off" placeholder="Wallet or bank account number">
-    <button onclick="savePayout()">Save payout details</button>
-    <p id="payoutMessage" class="message" aria-live="polite"></p>
-    <p class="note">Your payout details are private and should only be accessible to your account and authorized administrators.</p>
-  </section>
+<section class="card hidden" id="payoutCard">
+<h2>💳 Payout method</h2>
+<label for="payout">Payment method</label>
+<select id="payout"><option>JazzCash</option><option>Easypaisa</option><option>Bank Account</option></select>
+<label for="account">Account holder name</label><input id="account" placeholder="Account holder name">
+<label for="accountNumber">Wallet or bank account number</label><input id="accountNumber" placeholder="Wallet or bank account number">
+<button type="button" onclick="savePayout()">Save payout details</button>
+<p id="payoutMessage" class="message" aria-live="polite"></p>
+<p class="note">Payout details must be protected by database access policies.</p>
+</section>
 
-  <section class="card hidden" id="adminCard">
-    <h2>🛡️ Admin dashboard</h2>
-    <p class="note">Only accounts explicitly authorized in the Supabase admin_users table should access these records.</p>
-    <button onclick="loadAdminData()">Refresh admin records</button>
-    <h3>Referral requests</h3><div id="referralRecords" class="message">No records loaded.</div>
-    <h3>Payout records</h3><div id="payoutRecords" class="message">No records loaded.</div>
-  </section>
+<section class="card hidden" id="adminCard">
+<h2>🛡️ Admin dashboard</h2>
+<p class="note">Admin access must be authorized in Supabase.</p>
+<button type="button" onclick="loadAdminData()">Refresh admin records</button>
+<h3>Referral requests</h3><div id="referralRecords" class="message">No records loaded.</div>
+<h3>Payout records</h3><div id="payoutRecords" class="message">No records loaded.</div>
+</section>
 
-  <section class="card">
-    <h2>🎁 Referral program</h2>
-    <p class="note">Referral rewards are not paid automatically. Requests require server-side verification and admin approval.</p>
-  </section>
-  <p class="note">Setup required: add your Supabase project URL below in the script. Never place a Supabase secret/service_role key or an admin password in this HTML file.</p>
+<section class="card">
+<h2>🎁 Referral program</h2>
+<p class="note">Referral rewards require server-side verification and admin approval.</p>
+</section>
+<p class="note">Never put a Supabase secret/service_role key or an admin password in this HTML file.</p>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  // Replace only these two values with your Supabase Project URL and publishable key.
-  const SUPABASE_URL = "https://wzozoobgkunfvoxhpnwh.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_FAwgV6Mg7D3xvl8Agy_D3w__YSrzlju";
+const SUPABASE_URL="https://wzozoobgkunfvoxhpnwh.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_FAwgV6Mg7D3xvl8Agy_D3w__YSrzlju";
+let supabaseClient=null;
+let currentUser=null;
 
-  let supabaseClient = null;
-  let currentUser = null;
-
-  function show(id, text) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = text;
-  }
-  function setHidden(id, hidden) {
-    document.getElementById(id).classList.toggle("hidden", hidden);
-  }
-  function setupClient() {
-    if (SUPABASE_URL.includes("PASTE_YOUR") || !window.supabase) {
-      throw new Error("Supabase setup required: replace SUPABASE_URL with your real Project URL in this file.");
-    }
-    if (!supabaseClient) {
-      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-    }
-    return supabaseClient;
-  }
-  function friendlyError(error) {
-    return error && error.message ? error.message : "Something went wrong. Please try again.";
-  }
-
-  async function registerUser() {
-    const button = document.getElementById("registerButton");
-    button.disabled = true;
-    show("registerMessage", "Please wait…");
-    try {
-      const client = setupClient();
-      const name = document.getElementById("name").value.trim();
-      const phone = document.getElementById("phone").value.trim();
-      const role = document.getElementById("role").value;
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
-      const referralCode = document.getElementById("referral").value.trim().toUpperCase();
-
-      if (!name || !phone || !email || !password) throw new Error("Please complete your name, mobile number, email, and password.");
-      if (password.length < 8) throw new Error("Password must be at least 8 characters.");
-
-      const { data, error } = await client.auth.signUp({
-        email, password,
-        options: { data: { full_name: name, phone, role, referral_code_used: referralCode || null } }
-      });
-      if (error) throw error;
-      show("registerMessage", data.session
-        ? "Account created. You are signed in."
-        : "Registration submitted. Check your email to confirm your account, then sign in.");
-      if (data.session) await refreshSession();
-    } catch (error) {
-      show("registerMessage", friendlyError(error));
-    } finally { button.disabled = false; }
-  }
-
-  async function signIn() {
-    const button = document.getElementById("loginButton");
-    button.disabled = true;
-    show("authMessage", "Signing in…");
-    try {
-      const client = setupClient();
-      const email = document.getElementById("loginEmail").value.trim();
-      const password = document.getElementById("loginPassword").value;
-      if (!email || !password) throw new Error("Enter your email and password.");
-      const { error } = await client.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      show("authMessage", "Signed in successfully.");
-      await refreshSession();
-    } catch (error) {
-      show("authMessage", friendlyError(error));
-    } finally { button.disabled = false; }
-  }
-
-  async function signOut() {
-    try {
-      const client = setupClient();
-      const { error } = await client.auth.signOut();
-      if (error) throw error;
-      currentUser = null;
-      updateUI(null);
-      show("authMessage", "Signed out.");
-    } catch (error) { show("authMessage", friendlyError(error)); }
-  }
-
-  async function refreshSession() {
-    const client = setupClient();
-    const { data, error } = await client.auth.getUser();
-    if (error) throw error;
-    currentUser = data.user || null;
-    updateUI(currentUser);
-  }
-
-  async function updateUI(user) {
-    const signedIn = !!user;
-    setHidden("accountCard", !signedIn);
-    setHidden("payoutCard", !signedIn);
-    setHidden("signOutButton", !signedIn);
-    document.getElementById("loginButton").classList.toggle("hidden", signedIn);
-    if (!signedIn) {
-      setHidden("adminCard", true);
-      show("accountInfo", "");
-      show("myReferral", "—");
-      return;
-    }
-    show("accountInfo", "Signed in as " + (user.email || "user"));
-    try {
-      const client = setupClient();
-      const { data: profile, error } = await client.from("profiles")
-        .select("full_name, phone, role, referral_code")
-        .eq("id", user.id).maybeSingle();
-      if (error) throw error;
-      if (profile) {
-        show("accountInfo", "Name: " + (profile.full_name || "—") + "\nPhone: " + (profile.phone || "—") + "\nRole: " + (profile.role || "—") + "\nEmail: " + (user.email || "—"));
-        show("myReferral", profile.referral_code || "Pending");
-      }
-      const { data: adminRow, error: adminError } = await client.from("admin_users")
-        .select("user_id").eq("user_id", user.id).maybeSingle();
-      if (adminError && !/permission|policy/i.test(adminError.message)) throw adminError;
-      const isAdmin = !!adminRow;
-      setHidden("adminCard", !isAdmin);
-      if (isAdmin) await loadAdminData();
-    } catch (error) {
-      show("authMessage", "Signed in, but profile/admin setup needs checking: " + friendlyError(error));
-    }
-  }
-
-  async function savePayout() {
-    show("payoutMessage", "Saving…");
-    try {
-      const client = setupClient();
-      if (!currentUser) throw new Error("Please sign in first.");
-      const accountHolder = document.getElementById("account").value.trim();
-      const accountNumber = document.getElementById("accountNumber").value.trim();
-      const method = document.getElementById("payout").value;
-      if (!accountHolder || !accountNumber) throw new Error("Enter the account holder name and account number.");
-      const { error } = await client.from("payout_methods").upsert({
-        user_id: currentUser.id,
-        method,
-        account_holder: accountHolder,
-        account_number: accountNumber,
-        updated_at: new Date().toISOString()
-      }, { onConflict: "user_id" });
-      if (error) throw error;
-      show("payoutMessage", "Payout details saved securely.");
-    } catch (error) { show("payoutMessage", friendlyError(error)); }
-  }
-
-  async function loadAdminData() {
-    if (!currentUser) { show("authMessage", "Please sign in first."); return; }
-    show("referralRecords", "Loading…");
-    show("payoutRecords", "Loading…");
-    try {
-      const client = setupClient();
-      const { data: refs, error: refsError } = await client.from("referral_claims")
-        .select("id, referrer_user_id, referred_user_id, referral_code, status, created_at")
-        .order("created_at", { ascending: false }).limit(100);
-      if (refsError) throw refsError;
-      show("referralRecords", refs && refs.length ? refs.map(r =>
-        "Status: " + r.status + " | Code: " + (r.referral_code || "—") + " | Created: " + (r.created_at || "—")
-      ).join("\n\n") : "No referral records found.");
-
-      const { data: payouts, error: payoutsError } = await client.from("payout_methods")
-        .select("user_id, method, account_holder, account_number, updated_at")
-        .order("updated_at", { ascending: false }).limit(100);
-      if (payoutsError) throw payoutsError;
-      show("payoutRecords", payouts && payouts.length ? payouts.map(p =>
-        "User ID: " + p.user_id + " | Method: " + p.method + " | Holder: " + p.account_holder + " | Updated: " + (p.updated_at || "—")
-      ).join("\n\n") : "No payout records found.");
-    } catch (error) {
-      show("referralRecords", "Could not load records: " + friendlyError(error));
-      show("payoutRecords", "Admin access or database setup may be incomplete.");
-    }
-  }
-
-  window.addEventListener("load", async () => {
-    try {
-      if (!SUPABASE_URL.includes("PASTE_YOUR")) {
-        setupClient();
-        await refreshSession();
-      } else {
-        show("authMessage", "Setup needed: add your Supabase Project URL near the bottom of this HTML file.");
-      }
-    } catch (error) {
-      show("authMessage", friendlyError(error));
-    }
+function setupClient(){
+  if(!window.supabase?.createClient) throw new Error("Supabase library did not load. Check your internet connection.");
+  if(!SUPABASE_URL.startsWith("https://")||!SUPABASE_PUBLISHABLE_KEY.startsWith("sb_publishable_"))
+    throw new Error("Check your Supabase Project URL and publishable key.");
+  if(!supabaseClient) supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
+    auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
   });
+  return supabaseClient;
+}
+function show(id,text){const e=document.getElementById(id);if(e)e.textContent=text;}
+function setHidden(id,hidden){document.getElementById(id)?.classList.toggle("hidden",hidden);}
+function friendlyError(error){
+  const m=error?.message||"Something went wrong. Please try again.";
+  if(/invalid login credentials/i.test(m))return "Email or password is incorrect. If newly registered, confirm your email first.";
+  if(/email not confirmed/i.test(m))return "Confirm your email using the Supabase email, then sign in.";
+  if(/failed to fetch|networkerror|load failed/i.test(m))return "Could not reach Supabase. Check internet and project settings.";
+  return m;
+}
+function busy(id,on,label){
+  const b=document.getElementById(id);
+  if(!b.dataset.originalText)b.dataset.originalText=b.textContent;
+  b.disabled=on;b.textContent=on?label:b.dataset.originalText;
+}
+  
+async function registerUser(){
+  busy("registerButton",true,"Creating account...");
+  show("registerMessage","Please wait...");
+  try{
+    const c=setupClient();
+    const name=document.getElementById("name").value.trim();
+    const phone=document.getElementById("phone").value.trim();
+    const role=document.getElementById("role").value;
+    const email=document.getElementById("email").value.trim();
+    const password=document.getElementById("password").value;
+    const referral=document.getElementById("referral").value.trim().toUpperCase();
+
+    if(!name||!phone||!email||!password)throw new Error("Complete your name, phone, email and password.");
+    if(password.length<8)throw new Error("Password must be at least 8 characters.");
+
+    const {data,error}=await c.auth.signUp({
+      email,password,
+      options:{data:{
+        full_name:name,phone,role,
+        referral_code_used:referral||null
+      }}
+    });
+    if(error)throw error;
+    if(data.session){
+      show("registerMessage","Account created. You are signed in.");
+      await refreshSession();
+    }else{
+      show("registerMessage","Registration submitted. Check your email to confirm the account, then sign in.");
+    }
+  }catch(e){show("registerMessage",friendlyError(e));}
+  finally{busy("registerButton",false,"");}
+}
+
+async function signIn(){
+  busy("loginButton",true,"Signing in...");
+  show("authMessage","Signing in...");
+  try{
+    const c=setupClient();
+    const email=document.getElementById("loginEmail").value.trim();
+    const password=document.getElementById("loginPassword").value;
+    if(!email||!password)throw new Error("Enter your email and password.");
+
+    const {data,error}=await c.auth.signInWithPassword({email,password});
+    if(error)throw error;
+    if(!data.session||!data.user)throw new Error("Login session missing. Check email confirmation and Supabase Auth settings.");
+    currentUser=data.user;
+    show("authMessage","Signed in. Checking your account...");
+    await refreshSession();
+  }catch(e){show("authMessage",friendlyError(e));}
+  finally{busy("loginButton",false,"");}
+}
+
+async function signOut(){
+  try{
+    const {error}=await setupClient().auth.signOut();
+    if(error)throw error;
+    currentUser=null;
+    updateUI(null);
+    show("authMessage","Signed out.");
+  }catch(e){show("authMessage",friendlyError(e));}
+}
+
+async function refreshSession(){
+  const {data,error}=await setupClient().auth.getSession();
+  if(error)throw error;
+  currentUser=data.session?data.session.user:null;
+  await updateUI(currentUser);
+}
+
+async function updateUI(user){
+  const signedIn=!!user;
+  setHidden("accountCard",!signedIn);
+  setHidden("payoutCard",!signedIn);
+  setHidden("signOutButton",!signedIn);
+  setHidden("loginButton",signedIn);
+  setHidden("adminCard",true);
+
+  if(!signedIn){
+    show("accountInfo","");
+    show("myReferral","—");
+    return;
+  }
+
+  show("accountInfo","Signed in as "+(user.email||"user"));
+  try{
+    const c=setupClient();
+    const {data:profile,error:profileError}=await c.from("profiles")
+      .select("full_name,phone,role,referral_code")
+      .eq("id",user.id).maybeSingle();
+    if(profileError)throw profileError;
+
+    if(profile){
+      show("accountInfo",
+        "Name: "+(profile.full_name||user.user_metadata?.full_name||"—")+
+        "\nPhone: "+(profile.phone||user.user_metadata?.phone||"—")+
+        "\nRole: "+(profile.role||user.user_metadata?.role||"—")+
+        "\nEmail: "+(user.email||"—"));
+      show("myReferral",profile.referral_code||"Pending");
+    }else{
+      show("accountInfo","Signed in as "+(user.email||"user")+
+        "\nProfile row not found. Database profile setup is required.");
+    }
+
+    const {data:adminRow,error:adminError}=await c.from("admin_users")
+      .select("user_id").eq("user_id",user.id).maybeSingle();
+
+    if(adminError){
+      if(/relation .* does not exist|schema cache/i.test(adminError.message)){
+        show("authMessage","Signed in, but admin_users table is missing. Admin dashboard remains locked.");
+      }else if(!/permission|policy|row-level security/i.test(adminError.message)){
+        show("authMessage","Signed in, but admin access check failed: "+friendlyError(adminError));
+      }
+    }
+
+    const isAdmin=!!adminRow&&!adminError;
+    setHidden("adminCard",!isAdmin);
+    if(isAdmin)await loadAdminData();
+  }catch(e){
+    show("authMessage","Signed in, but database setup needs checking: "+friendlyError(e));
+  }
+  }
+  
+async function savePayout(){
+  show("payoutMessage","Saving...");
+  try{
+    const c=setupClient();
+    if(!currentUser)throw new Error("Please sign in first.");
+    const holder=document.getElementById("account").value.trim();
+    const number=document.getElementById("accountNumber").value.trim();
+    const method=document.getElementById("payout").value;
+    if(!holder||!number)throw new Error("Enter the account holder name and account number.");
+
+    const {error}=await c.from("payout_methods").upsert({
+      user_id:currentUser.id,
+      method,
+      account_holder:holder,
+      account_number:number,
+      updated_at:new Date().toISOString()
+    },{onConflict:"user_id"});
+    if(error)throw error;
+    show("payoutMessage","Payout details saved.");
+  }catch(e){show("payoutMessage",friendlyError(e));}
+}
+
+async function loadAdminData(){
+  if(!currentUser){show("authMessage","Please sign in first.");return;}
+  show("referralRecords","Loading...");
+  show("payoutRecords","Loading...");
+  try{
+    const c=setupClient();
+    const {data:refs,error:refsError}=await c.from("referral_claims")
+      .select("id,referrer_user_id,referred_user_id,referral_code,status,created_at")
+      .order("created_at",{ascending:false}).limit(100);
+    if(refsError)throw refsError;
+
+    show("referralRecords",refs?.length?refs.map(r=>
+      "Status: "+(r.status||"—")+
+      " | Code: "+(r.referral_code||"—")+
+      " | Created: "+(r.created_at||"—")
+    ).join("\n\n"):"No referral records found.");
+
+    const {data:payouts,error:payoutError}=await c.from("payout_methods")
+      .select("user_id,method,account_holder,updated_at")
+      .order("updated_at",{ascending:false}).limit(100);
+    if(payoutError)throw payoutError;
+
+    show("payoutRecords",payouts?.length?payouts.map(p=>
+      "User ID: "+p.user_id+
+      " | Method: "+p.method+
+      " | Holder: "+(p.account_holder||"—")+
+      " | Updated: "+(p.updated_at||"—")
+    ).join("\n\n"):"No payout records found.");
+  }catch(e){
+    show("referralRecords","Could not load records: "+friendlyError(e));
+    show("payoutRecords","Admin access or database setup may be incomplete.");
+  }
+}
+
+window.addEventListener("load",async()=>{
+  try{
+    const c=setupClient();
+    await refreshSession();
+    c.auth.onAuthStateChange((_event,session)=>{
+      currentUser=session?session.user:null;
+      Promise.resolve().then(()=>updateUI(currentUser));
+    });
+  }catch(e){
+    show("authMessage",friendlyError(e));
+  }
+});
 </script>
 </body>
-      </html>
+</html>
