@@ -1,757 +1,265 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Noor Rider Admin Panel</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Noor Rider</title>
 <style>
-:root{color-scheme:dark;--bg:#10151d;--panel:#19222e;--line:#2b3949;--text:#f4f7fb;--muted:#aab7c6;--accent:#2dd4a7}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:16px Arial,sans-serif}
-header{padding:18px 16px;background:#0b1118;border-bottom:1px solid var(--line)}
-header h1{margin:0;font-size:23px}
-header p{margin:6px 0 0;color:var(--muted)}
-.wrap{max-width:1100px;margin:auto;padding:16px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;min-width:0}
-.card h2{font-size:20px;margin:0 0 12px}
-.muted,.hint{color:var(--muted);font-size:14px;line-height:1.5}
-.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.row>*{flex:1;min-width:0}
-.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
-.tabs button{width:auto;margin:0}
-.hidden{display:none!important}
-label{display:block;margin:12px 0 6px;color:#dce5ee}
-input,select,textarea{width:100%;padding:13px;border-radius:8px;border:1px solid #3a4b5e;background:#0e151d;color:var(--text);font:inherit}
-textarea{min-height:70px;resize:vertical}
-button{width:100%;border:0;border-radius:9px;padding:13px 14px;background:var(--accent);color:#06241d;font-weight:700;font-size:15px;cursor:pointer;margin-top:10px}
-button.secondary{background:#344458;color:#fff}
-button.danger{background:#7f3038;color:#fff}
-button.small{width:auto;padding:9px 10px;margin:3px}
-button:disabled{opacity:.5;cursor:wait}
-.status{padding:13px;border-radius:9px;background:#202e3b;color:#dce7f2;margin:12px 0;white-space:pre-wrap;overflow-wrap:anywhere}
-.status.error{background:#48252b;color:#ffd7da}
-.status.ok{background:#173e35;color:#c9fff0}
-.pill{display:inline-block;padding:5px 9px;border-radius:99px;background:#293a4b;color:#dce7f2;font-size:13px}
-.balance{font-size:30px;font-weight:700;color:var(--accent);margin:8px 0}
-.tablewrap{overflow-x:auto}
-table{border-collapse:collapse;width:100%;font-size:14px}
-th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line);vertical-align:top;overflow-wrap:anywhere}
-th{color:#c7d5e4}
-small{color:var(--muted)}
-.footer{color:var(--muted);font-size:13px;text-align:center;padding:18px}
-@media(max-width:520px){.wrap{padding:10px}.card{padding:13px}.row>*{min-width:100%}}
+body{font-family:Arial;background:#f1f5f9;margin:0;color:#172033}
+header{background:#087f5b;color:white;padding:20px;text-align:center}
+main{max-width:600px;margin:auto;padding:16px}
+.card{background:white;padding:18px;border-radius:14px;margin:14px 0;box-shadow:0 2px 10px #0001}
+h2{font-size:20px}
+input,select,button{width:100%;padding:12px;margin:6px 0;border-radius:8px;border:1px solid #ccd5df;font-size:16px}
+button{background:#087f5b;color:white;border:0;font-weight:bold;cursor:pointer}
+button.secondary{background:#e6f4ee;color:#087f5b}
+button.danger{background:#c0392b}
+.hidden{display:none}
+.tabs{display:flex;gap:8px}
+.tabs button{flex:1}
+.small{font-size:13px;color:#64748b}
+.item{padding:12px;background:#f8fafc;border-radius:8px;margin:8px 0}
 </style>
 </head>
 <body>
 <header>
-<h1>Noor Rider Admin Panel</h1>
-<p>Driver • Passenger • Wallet • Referrals • Payouts</p>
+<h1>🚖 Noor Rider</h1>
+<p>Safe • Simple • Reliable</p>
 </header>
 
-<div class="wrap">
-<div id="configWarning" class="status error hidden"></div>
-<div id="message" class="status hidden" role="status" aria-live="polite"></div>
-
-<section id="authSection" class="grid">
-  <div class="card">
-    <h2>Sign in</h2>
-    <form id="loginForm">
-      <label for="loginEmail">Email</label>
-      <input id="loginEmail" type="email" autocomplete="username" required>
-      <label for="loginPassword">Password</label>
-      <input id="loginPassword" type="password" autocomplete="current-password" required>
-      <button type="submit">Sign in</button>
-    </form>
-  </div>
-
-  <div class="card">
-    <h2>Create account</h2>
-    <form id="signupForm">
-      <label for="signupName">Full name</label>
-      <input id="signupName" required maxlength="150">
-      <label for="signupPhone">Phone</label>
-      <input id="signupPhone" maxlength="30">
-      <label for="signupRole">Account type</label>
-      <select id="signupRole">
-        <option value="passenger">Passenger</option>
-        <option value="driver">Driver</option>
-      </select>
-      <label for="signupReferral">Referral code (optional)</label>
-      <input id="signupReferral" maxlength="30">
-      <label for="signupEmail">Email</label>
-      <input id="signupEmail" type="email" autocomplete="username" required>
-      <label for="signupPassword">Password (minimum 8 characters)</label>
-      <input id="signupPassword" type="password" minlength="8" autocomplete="new-password" required>
-      <button type="submit">Create account</button>
-      <p class="hint">If email confirmation is enabled, confirm your email before signing in.</p>
-    </form>
-  </div>
-</section>
-
-<section id="appSection" class="hidden">
-  <div class="card">
-    <div class="row">
-      <div>
-        <h2 id="welcome">Welcome</h2>
-        <p class="muted" id="accountInfo"></p>
-      </div>
-      <div>
-        <button id="refreshBtn" class="secondary">Refresh</button>
-        <button id="logoutBtn" class="danger">Sign out</button>
-      </div>
-    </div>
-    <div class="balance" id="walletBalance">Rs. 0.00</div>
-    <div class="muted" id="walletDetail">Wallet balance</div>
-    <p>My referral code:
-      <strong id="myReferral">Loading…</strong>
-      <button class="small secondary" id="copyReferral" type="button">Copy code</button>
-    </p>
-  </div>
-
-  <div class="tabs">
-    <button class="secondary" data-tab="walletTab">Wallet & Top-up</button>
-    <button class="secondary" data-tab="withdrawTab">Withdraw</button>
-    <button class="secondary" data-tab="historyTab">History</button>
-    <button class="secondary hidden" id="adminTabButton" data-tab="adminTab">Admin controls</button>
-  </div>
-
-  <div id="walletTab" class="tabPanel">
-    <div class="grid">
-      <div class="card">
-        <h2>Request a top-up</h2>
-        <p class="hint">Payment must be verified by an administrator before wallet credit.</p>
-        <form id="topupForm">
-          <label for="topupMethod">Payment method</label>
-          <select id="topupMethod">
-            <option>JazzCash</option>
-            <option>Easypaisa</option>
-            <option>Bank Account</option>
-          </select>
-          <label for="topupAmount">Amount (PKR)</label>
-          <input id="topupAmount" type="number" min="1" max="10000000" step="0.01" required>
-          <label for="topupReference">Sender transaction/reference ID</label>
-          <input id="topupReference" maxlength="120" required>
-          <label for="topupNote">Note (optional)</label>
-          <textarea id="topupNote" maxlength="300"></textarea>
-          <button type="submit">Submit top-up request</button>
-        </form>
-      </div>
-
-      <div class="card">
-        <h2>My payout details</h2>
-        <p class="hint">Actual payments are made separately after verification.</p>
-        <form id="payoutForm">
-          <label for="payoutMethod">Method</label>
-          <select id="payoutMethod">
-            <option>JazzCash</option>
-            <option>Easypaisa</option>
-            <option>Bank Account</option>
-          </select>
-          <label for="payoutHolder">Account holder name</label>
-          <input id="payoutHolder" maxlength="150" required>
-          <label for="payoutNumber">Wallet or bank account number / IBAN</label>
-          <input id="payoutNumber" maxlength="120" required>
-          <button type="submit">Save payout details</button>
-        </form>
-      </div>
-    </div>
-    <div class="card">
-      <h2>My top-up requests</h2>
-      <div id="myTopups" class="tablewrap muted">Loading…</div>
-    </div>
-  </div>
-
-    <div id="withdrawTab" class="tabPanel hidden">
-    <div class="card">
-      <h2>Request withdrawal</h2>
-      <p class="hint">Withdrawals require server-side balance checks and admin review.</p>
-      <form id="withdrawForm">
-        <label for="withdrawAmount">Amount (PKR)</label>
-        <input id="withdrawAmount" type="number" min="1" max="10000000" step="0.01" required>
-        <button type="submit">Request withdrawal</button>
-      </form>
-    </div>
-    <div class="card">
-      <h2>My withdrawal requests</h2>
-      <div id="myWithdrawals" class="tablewrap muted">Loading…</div>
-    </div>
-  </div>
-
-  <div id="historyTab" class="tabPanel hidden">
-    <div class="card">
-      <h2>Wallet transaction history</h2>
-      <div id="myTransactions" class="tablewrap muted">Loading…</div>
-    </div>
-    <div class="card">
-      <h2>My referrals</h2>
-      <div id="myReferrals" class="tablewrap muted">Loading…</div>
-    </div>
-  </div>
-
-  <div id="adminTab" class="tabPanel hidden">
-    <div class="card">
-      <h2>Admin: Users</h2>
-      <div id="adminProfiles" class="tablewrap muted">Loading…</div>
-    </div>
-    <div class="card">
-      <h2>Admin: Approve top-ups</h2>
-      <div id="adminTopups" class="tablewrap muted">Loading…</div>
-    </div>
-    <div class="card">
-      <h2>Admin: Referral requests</h2>
-      <div id="adminReferrals" class="tablewrap muted">Loading…</div>
-    </div>
-    <div class="card">
-      <h2>Admin: Withdrawals</h2>
-      <div id="adminWithdrawals" class="tablewrap muted">Loading…</div>
-    </div>
-    <div class="card">
-      <h2>Manual wallet credit</h2>
-      <form id="adminTopupForm">
-        <label for="adminUserId">User UUID</label>
-        <input id="adminUserId" required>
-        <label for="adminTopupAmount">Amount (PKR)</label>
-        <input id="adminTopupAmount" type="number" min="0.01" step="0.01" required>
-        <label for="adminTopupNote">Reason / note</label>
-        <input id="adminTopupNote" maxlength="300" required>
-        <button type="submit">Credit wallet</button>
-      </form>
-    </div>
-  </div>
-</section>
-
-<div class="footer">Noor Rider Admin Panel • Never share your password or service-role key.</div>
+<main>
+<div class="card">
+<div class="tabs">
+<button onclick="setRole('passenger')">Passenger</button>
+<button onclick="setRole('driver')">Driver</button>
+</div>
+<p id="roleText">Passenger Account</p>
 </div>
 
+<div class="card" id="auth">
+<h2>Register / Login</h2>
+<input id="name" placeholder="Full name">
+<input id="phone" placeholder="Phone number">
+<input id="password" type="password" placeholder="Password">
+<div id="driverFields" class="hidden">
+<input id="vehicle" placeholder="Vehicle model">
+<input id="plate" placeholder="Vehicle number plate">
+</div>
+<input id="refInput" placeholder="Referral code (optional)">
+<button onclick="register()">Register / Login</button>
+<p class="small">Demo only: accounts are stored in this browser.</p>
+</div>
+
+<div id="app" class="hidden">
+<div class="card">
+<h2 id="welcome"></h2>
+<p id="profile"></p>
+<p>Your referral code: <b id="myRef"></b></p>
+<button class="secondary" onclick="shareRef()">Share referral code</button>
+<button class="danger" onclick="logout()">Logout</button>
+</div>
+
+<div class="card" id="passengerPanel">
+<h2>Book a Ride</h2>
+<input id="pickup" placeholder="Pickup location">
+<input id="destination" placeholder="Destination">
+<select id="rideType">
+<option>Bike</option>
+<option>Rickshaw</option>
+<option>Car</option>
+</select>
+<button onclick="requestRide()">Request Ride</button>
+</div>
+
+<div class="card hidden" id="driverPanel">
+<h2>Driver Dashboard</h2>
+<button id="onlineBtn" onclick="toggleOnline()">Go Online</button>
+<p id="driverStatus">You are offline.</p>
+<h3>Ride Requests</h3>
+<div id="requests"></div>
+</div>
+
+<div class="card">
+<h2>My Rides</h2>
+<div id="myRides">No rides yet.</div>
+</div>
+
+<div class="card">
+<h2>Referral Dashboard</h2>
+<p>Successful referrals: <b id="refCount">0</b></p>
+<p>Demo commission: Rs. <b id="commission">0</b></p>
+<p class="small">Commission is a demonstration value, not a real payment.</p>
+</div>
+</div>
+</main>
+
 <script>
-(() => {
-  "use strict";
+const KEY="noorRiderDemoV1";
+let db;
+try {
+ db=JSON.parse(localStorage.getItem(KEY))||{
+ users:[],rides:[],current:null
+ };
+} catch(e) {
+ db={users:[],rides:[],current:null};
+}
+let role="passenger",online=false;
 
-  const SUPABASE_URL = "https://wzozoobgkunfvoxhpnwh.supabase.co";
-  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_FAwgV6Mg7D3xvl8Agy_D3w__YSrzlju";
-
-  const $ = id => document.getElementById(id);
-  let client;
-  let currentUser = null;
-  let currentProfile = null;
-  let isAdmin = false;
-  let loadingApp = false;
-
-  function message(text, type = "") {
-    const box = $("message");
-    box.textContent = text;
-    box.className = "status" + (type ? " " + type : "");
+function save(){
+ localStorage.setItem(KEY,JSON.stringify(db));
+}
+function setRole(r){
+ role=r;
+ document.getElementById("roleText").textContent=
+ r==="driver"?"Driver Account":"Passenger Account";
+ document.getElementById("driverFields").classList.toggle("hidden",r!=="driver");
+}
+function register(){
+ const name=document.getElementById("name").value.trim();
+ const phone=document.getElementById("phone").value.trim();
+ const password=document.getElementById("password").value;
+ if(!name||!phone||!password){
+  alert("Enter name, phone and password.");
+  return;
+ }
+ let user=db.users.find(u=>u.phone===phone&&u.role===role);
+ if(user){
+  if(user.password!==password){
+   alert("Incorrect password.");
+   return;
   }
-
-  function clearMessage() {
-    $("message").textContent = "";
-    $("message").className = "status hidden";
+ }else{
+  user={
+   id:Date.now().toString(),
+   name,phone,password,role,
+   vehicle:document.getElementById("vehicle").value.trim(),
+   plate:document.getElementById("plate").value.trim(),
+   referral:("NOOR"+Math.random().toString(36).slice(2,8)).toUpperCase(),
+   referredBy:document.getElementById("refInput").value.trim().toUpperCase(),
+   online:false
+  };
+  if(role==="driver"&&(!user.vehicle||!user.plate)){
+   alert("Enter vehicle model and number plate.");
+   return;
   }
-
-  function money(n) {
-    return "Rs. " + Number(n || 0).toLocaleString("en-PK", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
+  if(user.referredBy){
+   const referrer=db.users.find(u=>u.referral===user.referredBy);
+   if(referrer&&referrer.id!==user.id)user.referrerId=referrer.id;
+   else user.referredBy="";
   }
-
-  function esc(v) {
-    return String(v ?? "").replace(/[&<>"']/g, c => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;",
-      '"': "&quot;", "'": "&#39;"
-    })[c]);
+  db.users.push(user);
+ }
+ db.current=user.id;
+ save();
+ render();
+}
+function logout(){
+ db.current=null;online=false;save();render();
+}
+function me(){return db.users.find(u=>u.id===db.current)}
+function requestRide(){
+ const pickup=document.getElementById("pickup").value.trim();
+ const destination=document.getElementById("destination").value.trim();
+ if(!pickup||!destination){
+  alert("Enter pickup and destination.");
+  return;
+ }
+ db.rides.unshift({
+  id:Date.now().toString(),
+  passengerId:me().id,
+  pickup,destination,
+  type:document.getElementById("rideType").value,
+  status:"Requested",driverId:null
+ });
+ save();render();
+ alert("Ride request created.");
+}
+function toggleOnline(){
+ const u=me();
+ online=!online;u.online=online;save();render();
+}
+function rideAction(id,action){
+ const ride=db.rides.find(r=>r.id===id);
+ if(!ride)return;
+ if(action==="accept"){
+  if(ride.status!=="Requested"){
+   alert("This ride is no longer available.");return;
   }
-
-  function date(v) {
-    return v ? new Date(v).toLocaleString() : "—";
+  ride.driverId=me().id;ride.status="Accepted";
+ }else if(action==="reject"){
+  ride.status="Rejected";
+ }else if(action==="complete"){
+  ride.status="Completed";
+ }else if(action==="cancel"){
+  ride.status="Cancelled";
+ }
+ save();render();
+}
+function shareRef(){
+ const code=me().referral;
+ const msg="Join Noor Rider! My referral code: "+code;
+ if(navigator.share)navigator.share({title:"Noor Rider",text:msg}).catch(()=>{});
+ else if(navigator.clipboard)navigator.clipboard.writeText(msg)
+  .then(()=>alert("Referral code copied."))
+  .catch(()=>prompt("Copy this code:",code));
+ else prompt("Copy this code:",code);
+}
+function render(){
+ const u=me();
+ document.getElementById("auth").classList.toggle("hidden",!!u);
+ document.getElementById("app").classList.toggle("hidden",!u);
+ if(!u)return;
+ document.getElementById("welcome").textContent="Welcome, "+u.name;
+ document.getElementById("profile").textContent=
+  u.role==="driver"?"Driver • "+u.vehicle+" • "+u.plate:"Passenger account";
+ document.getElementById("myRef").textContent=u.referral;
+ document.getElementById("passengerPanel").classList.toggle("hidden",u.role!=="passenger");
+ document.getElementById("driverPanel").classList.toggle("hidden",u.role!=="driver");
+ document.getElementById("onlineBtn").textContent=u.online?"Go Offline":"Go Online";
+ document.getElementById("driverStatus").textContent=u.online?"You are online.":"You are offline.";
+ const requests=document.getElementById("requests");
+ requests.innerHTML="";
+ if(u.role==="driver"){
+  db.rides.filter(r=>r.status==="Requested"&&u.online)
+   .forEach(r=>{
+    const p=db.users.find(x=>x.id===r.passengerId);
+    const d=document.createElement("div");d.className="item";
+    d.textContent=`${r.type}: ${r.pickup} → ${r.destination} | Passenger: ${p?p.name:"Unknown"} `;
+    const a=document.createElement("button");a.textContent="Accept";
+    a.onclick=()=>rideAction(r.id,"accept");
+    const b=document.createElement("button");b.className="danger";b.textContent="Reject";
+    b.onclick=()=>rideAction(r.id,"reject");
+    d.append(a,b);requests.appendChild(d);
+   });
+  if(!requests.children.length)requests.textContent="No available requests.";
+ }
+ const rides=document.getElementById("myRides");
+ rides.innerHTML="";
+ const list=db.rides.filter(r=>r.passengerId===u.id||r.driverId===u.id);
+ if(!list.length)rides.textContent="No rides yet.";
+ list.forEach(r=>{
+  const d=document.createElement("div");d.className="item";
+  d.textContent=`${r.type}: ${r.pickup} → ${r.destination} | ${r.status}`;
+  if(r.driverId){
+   const driver=db.users.find(x=>x.id===r.driverId);
+   d.textContent+=` | Driver: ${driver?driver.name:"Unknown"}`;
   }
-
-  function table(headers, rows) {
-    if (!rows || !rows.length) {
-      return '<p class="muted">No records found.</p>';
-    }
-    return '<table><thead><tr>' +
-      headers.map(h => '<th>' + esc(h) + '</th>').join("") +
-      '</tr></thead><tbody>' +
-      rows.map(r => '<tr>' + r.map(x => '<td>' + x + '</td>').join("") + '</tr>').join("") +
-      '</tbody></table>';
+  if(u.role==="driver"&&r.driverId===u.id&&r.status==="Accepted"){
+   const b=document.createElement("button");b.textContent="Complete Ride";
+   b.onclick=()=>rideAction(r.id,"complete");d.appendChild(b);
   }
-
-  function showAuth() {
-    $("authSection").classList.remove("hidden");
-    $("appSection").classList.add("hidden");
+  if(u.role==="passenger"&&r.passengerId===u.id&&r.status==="Requested"){
+   const b=document.createElement("button");b.className="danger";b.textContent="Cancel Ride";
+   b.onclick=()=>rideAction(r.id,"cancel");d.appendChild(b);
   }
-
-  function showApp() {
-    $("authSection").classList.add("hidden");
-    $("appSection").classList.remove("hidden");
-  }
-
-  async function checkAdmin() {
-    const { data: { user }, error: authError } = await client.auth.getUser();
-    if (authError) throw authError;
-    if (!user) throw new Error("Your session expired. Please sign in again.");
-
-    const { data, error } = await client
-      .from("admin_users")
-      .select("user_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (error) throw new Error("Admin permission check failed: " + error.message);
-    return Boolean(data && data.user_id === user.id);
-  }
-
-   async function loadApp() {
-    if (loadingApp) return;
-    loadingApp = true;
-    try {
-      const { data: { user }, error } = await client.auth.getUser();
-      if (error) throw error;
-      if (!user) {
-        currentUser = null;
-        currentProfile = null;
-        isAdmin = false;
-        showAuth();
-        return;
-      }
-
-      currentUser = user;
-      showApp();
-      message("Signed in. Checking account…");
-
-      const { data: profile, error: profileError } = await client
-        .from("profiles")
-        .select("id,full_name,phone,role,referral_code")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (profileError) throw new Error("Profile check failed: " + profileError.message);
-      currentProfile = profile;
-
-      $("welcome").textContent = "Welcome" + (profile?.full_name ? " " + profile.full_name : "");
-      $("accountInfo").textContent = (user.email || "") + " • " + (profile?.role || "profile pending");
-      $("myReferral").textContent = profile?.referral_code || "Not available";
-      isAdmin = await checkAdmin();
-
-      $("adminTabButton").classList.toggle("hidden", !isAdmin);
-      $("withdrawForm").classList.toggle("hidden", profile?.role !== "driver");
-
-      const results = await Promise.allSettled([
-        loadWallet(), loadPayout(), loadTopups(),
-        loadWithdrawals(), loadTransactions(), loadReferrals()
-      ]);
-      const failed = results.find(r => r.status === "rejected");
-      if (failed) throw failed.reason;
-
-      if (isAdmin) await loadAdmin();
-      message(isAdmin
-        ? "Admin access verified."
-        : "Signed in. This account is not registered as an admin.",
-        isAdmin ? "ok" : "");
-    } catch (e) {
-      message("Account setup error: " + (e.message || String(e)), "error");
-    } finally {
-      loadingApp = false;
-    }
-  }
-
-  async function loadWallet() {
-    const { data, error } = await client.rpc("get_my_wallet");
-    if (error) throw new Error("Wallet: " + error.message);
-    const w = Array.isArray(data) ? data[0] : data;
-    $("walletBalance").textContent = money(w?.balance || 0);
-    $("walletDetail").textContent = "Available: " + money(w?.available || 0) +
-      " • Pending withdrawals: " + money(w?.reserved || 0);
-  }
-
-  async function loadPayout() {
-    const { data, error } = await client.from("payout_methods")
-      .select("method,account_holder,account_number")
-      .eq("user_id", currentUser.id).maybeSingle();
-    if (error) throw new Error("Payout details: " + error.message);
-    if (data) {
-      $("payoutMethod").value = data.method;
-      $("payoutHolder").value = data.account_holder;
-      $("payoutNumber").value = data.account_number;
-    }
-  }
-
-  async function loadTopups() {
-    const { data, error } = await client.from("topup_requests")
-      .select("id,amount,method,sender_reference,status,requested_at")
-      .eq("user_id", currentUser.id)
-      .order("requested_at", { ascending: false }).limit(50);
-    if (error) throw new Error("Top-up requests: " + error.message);
-    $("myTopups").innerHTML = table(
-      ["Amount", "Method", "Reference", "Status", "Requested"],
-      (data || []).map(x => [
-        esc(money(x.amount)), esc(x.method), esc(x.sender_reference),
-        '<span class="pill">' + esc(x.status) + '</span>', esc(date(x.requested_at))
-      ])
-    );
-  }
-
-  async function loadWithdrawals() {
-    const { data, error } = await client.from("withdrawal_requests")
-      .select("id,amount,method,account_holder,status,requested_at")
-      .eq("user_id", currentUser.id)
-      .order("requested_at", { ascending: false }).limit(50);
-    if (error) throw new Error("Withdrawals: " + error.message);
-    $("myWithdrawals").innerHTML = table(
-      ["Amount", "Method", "Destination", "Status", "Requested"],
-      (data || []).map(x => [
-        esc(money(x.amount)), esc(x.method), esc(x.account_holder),
-        '<span class="pill">' + esc(x.status) + '</span>', esc(date(x.requested_at))
-      ])
-    );
-  }
-
-  async function loadTransactions() {
-    const { data, error } = await client.from("wallet_transactions")
-      .select("amount,transaction_type,note,created_at")
-      .eq("user_id", currentUser.id)
-      .order("created_at", { ascending: false }).limit(100);
-    if (error) throw new Error("Wallet history: " + error.message);
-    $("myTransactions").innerHTML = table(
-      ["Amount", "Type", "Note", "Date"],
-      (data || []).map(x => [
-        esc(money(x.amount)), esc(x.transaction_type),
-        esc(x.note), esc(date(x.created_at))
-      ])
-    );
-  }
-
-  async function loadReferrals() {
-    const { data, error } = await client.from("referral_claims")
-      .select("id,referral_code,status,created_at,referrer_user_id,referred_user_id")
-      .or("referrer_user_id.eq." + currentUser.id +
-        ",referred_user_id.eq." + currentUser.id)
-      .order("created_at", { ascending: false }).limit(100);
-    if (error) throw new Error("Referral history: " + error.message);
-    $("myReferrals").innerHTML = table(
-      ["Code", "Status", "Created"],
-      (data || []).map(x => [
-        esc(x.referral_code), '<span class="pill">' + esc(x.status) + '</span>',
-        esc(date(x.created_at))
-      ])
-    );
-  }
-
-  async function loadAdmin() {
-    if (!isAdmin) throw new Error("Admin access required.");
-    const [profiles, topups, refs, withdrawals] = await Promise.all([
-      client.from("profiles").select("id,full_name,phone,role,referral_code,created_at")
-        .order("created_at", { ascending: false }).limit(100),
-      client.from("topup_requests").select("id,user_id,amount,method,sender_reference,status")
-        .eq("status", "pending").order("requested_at").limit(100),
-      client.from("referral_claims").select("id,referrer_user_id,referred_user_id,referral_code,status")
-        .eq("status", "pending").order("created_at").limit(100),
-      client.from("withdrawal_requests")
-        .select("id,user_id,amount,method,account_holder,account_number,status")
-        .in("status", ["pending", "approved"]).order("requested_at").limit(100)
-    ]);
-
-    for (const r of [profiles, topups, refs, withdrawals]) {
-      if (r.error) throw r.error;
-    }
-
-    $("adminProfiles").innerHTML = table(
-      ["Name", "Role", "Phone", "User UUID", "Referral"],
-      (profiles.data || []).map(x => [
-        esc(x.full_name), esc(x.role), esc(x.phone),
-        '<button class="small secondary" data-copy="' + esc(x.id) + '" type="button">Copy UUID</button><br><small>' + esc(x.id) + '</small>',
-        esc(x.referral_code)
-      ])
-    );
-
-    $("adminTopups").innerHTML = table(
-      ["Amount", "Method", "Reference", "User UUID", "Action"],
-      (topups.data || []).map(x => [
-        esc(money(x.amount)), esc(x.method), esc(x.sender_reference), esc(x.user_id),
-        '<button class="small" data-topup="' + esc(x.id) + '" data-approve="true" type="button">Approve & credit</button>' +
-        '<button class="small danger" data-topup="' + esc(x.id) + '" data-approve="false" type="button">Reject</button>'
-      ])
-    );
-
-    $("adminReferrals").innerHTML = table(
-      ["Code", "Referrer UUID", "New user UUID", "Action"],
-      (refs.data || []).map(x => [
-        esc(x.referral_code), esc(x.referrer_user_id), esc(x.referred_user_id),
-        '<button class="small" data-referral="' + esc(x.id) + '" data-approve="true" type="button">Approve bonus</button>' +
-        '<button class="small danger" data-referral="' + esc(x.id) + '" data-approve="false" type="button">Reject</button>'
-      ])
-    );
-
-    $("adminWithdrawals").innerHTML = table(
-      ["Amount", "Method", "Account holder", "User UUID", "Status", "Action"],
-      (withdrawals.data || []).map(x => [
-        esc(money(x.amount)), esc(x.method),
-        esc(x.account_holder) + "<br>" + esc(x.account_number),
-        esc(x.user_id), esc(x.status),
-        x.status === "pending"
-          ? '<button class="small" data-withdraw="' + esc(x.id) + '" data-action="approve" type="button">Approve & deduct</button>' +
-            '<button class="small danger" data-withdraw="' + esc(x.id) + '" data-action="reject" type="button">Reject</button>'
-          : '<button class="small" data-paid="' + esc(x.id) + '" type="button">Mark paid</button>'
-      ])
-    );
-  }
-
-    if (!window.supabase) {
-    $("configWarning").textContent =
-      "Supabase library failed to load. Check your internet connection.";
-    $("configWarning").classList.remove("hidden");
-    return;
-  }
-
-  try {
-    client = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_PUBLISHABLE_KEY
-    );
-  } catch (e) {
-    message("Supabase setup error: " + e.message, "error");
-    return;
-  }
-
-  $("loginForm").addEventListener("submit", async e => {
-    e.preventDefault();
-    try {
-      clearMessage();
-      const { error } = await client.auth.signInWithPassword({
-        email: $("loginEmail").value.trim(),
-        password: $("loginPassword").value
-      });
-      if (error) throw error;
-      await loadApp();
-    } catch (e) {
-      message("Sign-in failed: " + (e.message || String(e)), "error");
-    }
-  });
-
-  $("signupForm").addEventListener("submit", async e => {
-    e.preventDefault();
-    try {
-      clearMessage();
-      const { data, error } = await client.auth.signUp({
-        email: $("signupEmail").value.trim(),
-        password: $("signupPassword").value,
-        options: {
-          data: {
-            full_name: $("signupName").value.trim(),
-            phone: $("signupPhone").value.trim(),
-            role: $("signupRole").value,
-            referral_code_used: $("signupReferral").value.trim().toUpperCase()
-          }
-        }
-      });
-      if (error) throw error;
-
-      if (data.session) {
-        await loadApp();
-        message("Account created.", "ok");
-      } else {
-        message("Account created. Check your email if confirmation is required.", "ok");
-      }
-    } catch (e) {
-      message("Registration failed: " + (e.message || String(e)), "error");
-    }
-  });
-
-  $("logoutBtn").addEventListener("click", async () => {
-    try {
-      const { error } = await client.auth.signOut();
-      if (error) throw error;
-      currentUser = null;
-      currentProfile = null;
-      isAdmin = false;
-      showAuth();
-      message("Signed out.", "ok");
-    } catch (e) {
-      message("Sign-out failed: " + (e.message || String(e)), "error");
-    }
-  });
-
-  $("refreshBtn").addEventListener("click", () => loadApp());
-
-  $("copyReferral").addEventListener("click", async () => {
-    if (!currentProfile?.referral_code) {
-      message("No referral code is available yet.", "error");
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(currentProfile.referral_code);
-      message("Referral code copied.", "ok");
-    } catch {
-      message("Copy unavailable. Please copy the code manually.", "error");
-    }
-  });
-
-  document.querySelectorAll("[data-tab]").forEach(button => {
-    button.addEventListener("click", () => {
-      if (button.dataset.tab === "adminTab" && !isAdmin) {
-        message("Admin access required.", "error");
-        return;
-      }
-      document.querySelectorAll(".tabPanel").forEach(panel =>
-        panel.classList.add("hidden")
-      );
-      $(button.dataset.tab).classList.remove("hidden");
-    });
-  });
-
-  $("payoutForm").addEventListener("submit", async e => {
-    e.preventDefault();
-    try {
-      const { error } = await client.from("payout_methods").upsert({
-        user_id: currentUser.id,
-        method: $("payoutMethod").value,
-        account_holder: $("payoutHolder").value.trim(),
-        account_number: $("payoutNumber").value.trim(),
-        updated_at: new Date().toISOString()
-      }, { onConflict: "user_id" });
-      if (error) throw error;
-      message("Payout details saved.", "ok");
-    } catch (e) {
-      message("Payout save failed: " + e.message, "error");
-    }
-  });
-
-  $("topupForm").addEventListener("submit", async e => {
-    e.preventDefault();
-    try {
-      const amount = Number($("topupAmount").value);
-      if (!Number.isFinite(amount) || amount <= 0) {
-        throw new Error("Enter a valid amount.");
-      }
-      const { error } = await client.from("topup_requests").insert({
-        user_id: currentUser.id,
-        amount,
-        method: $("topupMethod").value,
-        sender_reference: $("topupReference").value.trim(),
-        note: $("topupNote").value.trim()
-      });
-      if (error) throw error;
-      $("topupForm").reset();
-      message("Top-up request submitted for admin verification.", "ok");
-      await loadTopups();
-    } catch (e) {
-      message("Top-up failed: " + e.message, "error");
-    }
-  });
-
-  $("withdrawForm").addEventListener("submit", async e => {
-    e.preventDefault();
-    try {
-      const amount = Number($("withdrawAmount").value);
-      if (!Number.isFinite(amount) || amount <= 0) {
-        throw new Error("Enter a valid amount.");
-      }
-      const { error } = await client.rpc("request_withdrawal", {
-        p_amount: amount
-      });
-      if (error) throw error;
-      $("withdrawForm").reset();
-      message("Withdrawal request submitted.", "ok");
-      await loadWallet();
-      await loadWithdrawals();
-    } catch (e) {
-      message("Withdrawal failed: " + e.message, "error");
-    }
-  });
-
-  $("adminTopupForm").addEventListener("submit", async e => {
-    e.preventDefault();
-    try {
-      if (!isAdmin) throw new Error("Admin access required.");
-      const { error } = await client.rpc("admin_wallet_topup", {
-        p_user_id: $("adminUserId").value.trim(),
-        p_amount: Number($("adminTopupAmount").value),
-        p_note: $("adminTopupNote").value.trim()
-      });
-      if (error) throw error;
-      message("Wallet credit request completed.", "ok");
-      await loadApp();
-    } catch (e) {
-      message("Admin top-up failed: " + e.message, "error");
-    }
-  });
-
-  $("adminTab").addEventListener("click", async event => {
-    const b = event.target.closest("button");
-    if (!b) return;
-
-    try {
-      if (b.dataset.copy) {
-        await navigator.clipboard.writeText(b.dataset.copy);
-        message("User UUID copied.", "ok");
-        return;
-      }
-
-      if (b.dataset.topup) {
-        const note = prompt("Admin note (optional):", "");
-        if (note === null) return;
-        const { error } = await client.rpc("admin_review_topup", {
-          p_request_id: b.dataset.topup,
-          p_approve: b.dataset.approve === "true",
-          p_note: note
-        });
-        if (error) throw error;
-      }
-
-      if (b.dataset.referral) {
-        const { error } = await client.rpc("admin_review_referral", {
-          p_claim_id: Number(b.dataset.referral),
-          p_approve: b.dataset.approve === "true"
-        });
-        if (error) throw error;
-      }
-
-      if (b.dataset.withdraw) {
-        const note = prompt("Admin note (optional):", "");
-        if (note === null) return;
-        const { error } = await client.rpc("admin_review_withdrawal", {
-          p_request_id: b.dataset.withdraw,
-          p_action: b.dataset.action,
-          p_note: note
-        });
-        if (error) throw error;
-      }
-
-      if (b.dataset.paid) {
-        const note = prompt("Payment transaction/reference ID:", "");
-        if (note === null) return;
-        const { error } = await client.rpc("admin_mark_withdrawal_paid", {
-          p_request_id: b.dataset.paid,
-          p_note: note
-        });
-        if (error) throw error;
-      }
-
-      await loadApp();
-    } catch (e) {
-      message("Admin action failed: " + (e.message || String(e)), "error");
-    }
-  });
-
-  client.auth.onAuthStateChange(() => {
-    setTimeout(() => {
-      loadApp().catch(e =>
-        message("Account check failed: " + (e.message || String(e)), "error")
-      );
-    }, 0);
-  });
-
-  client.auth.getSession().then(({ data, error }) => {
-    if (error) throw error;
-    if (data.session) return loadApp();
-    showAuth();
-  }).catch(e => {
-    message("Setup error: " + (e.message || String(e)), "error");
-  });
-})();
+  rides.appendChild(d);
+ });
+ const referrals=db.users.filter(x=>x.referrerId===u.id);
+ document.getElementById("refCount").textContent=referrals.length;
+ document.getElementById("commission").textContent=referrals.length*100;
+}
+render();
 </script>
 </body>
-</html>
+  </html>
