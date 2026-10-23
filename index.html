@@ -1,308 +1,844 @@
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Noor Rider Admin Panel</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
+:root{color-scheme:dark;--bg:#10151d;--panel:#19222e;--line:#2b3949;--text:#f4f7fb;--muted:#aab7c6;--accent:#2dd4a7;--danger:#ff7676}
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#10151d;color:#fff}
-header{background:#ffc107;color:#111;padding:22px 16px;text-align:center}
-header h1{margin:0}
-main{max-width:720px;margin:auto;padding:18px}
-.card{background:#1c2532;border-radius:14px;padding:20px;margin:15px 0}
-h2{color:#ffc107;margin-top:0}
-label{display:block;margin-top:8px}
-input,select,button{width:100%;padding:13px;margin:7px 0;border-radius:8px;border:1px solid #394657;font-size:15px}
-input,select{background:#fff;color:#111}
-button{background:#ffc107;color:#111;border:0;font-weight:bold;cursor:pointer}
-button.secondary{background:#344255;color:#fff}
-button:disabled{opacity:.6}
-.note{color:#b9c3d0;font-size:13px;line-height:1.5}
-.message{white-space:pre-wrap;line-height:1.5;overflow-wrap:anywhere}
+body{margin:0;background:var(--bg);color:var(--text);font:16px Arial,sans-serif}
+header{padding:18px 16px;background:#0b1118;border-bottom:1px solid var(--line)}
+header h1{margin:0;font-size:23px}
+header p{margin:6px 0 0;color:var(--muted)}
+.wrap{max-width:1050px;margin:auto;padding:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.card h2{font-size:20px;margin:0 0 12px}
+.muted,.hint{color:var(--muted);font-size:14px;line-height:1.5}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row>*{flex:1}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.tabs button{width:auto;margin:0}
 .hidden{display:none!important}
+label{display:block;margin:12px 0 6px;color:#dce5ee}
+input,select,textarea{width:100%;padding:13px;border-radius:8px;border:1px solid #3a4b5e;background:#0e151d;color:var(--text);font:inherit}
+textarea{min-height:70px;resize:vertical}
+button{width:100%;border:0;border-radius:9px;padding:13px 14px;background:var(--accent);color:#06241d;font-weight:700;font-size:15px;cursor:pointer;margin-top:10px}
+button.secondary{background:#344458;color:#fff}
+button.danger{background:#7f3038;color:#fff}
+button.small{width:auto;padding:9px 10px;margin:3px}
+button:disabled{opacity:.5;cursor:wait}
+.status{padding:13px;border-radius:9px;background:#202e3b;color:#dce7f2;margin:12px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.status.error{background:#48252b;color:#ffd7da}
+.status.ok{background:#173e35;color:#c9fff0}
+.pill{display:inline-block;padding:5px 9px;border-radius:99px;background:#293a4b;color:#dce7f2;font-size:13px}
+.balance{font-size:30px;font-weight:700;color:var(--accent);margin:8px 0}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line);vertical-align:top;white-space:normal;overflow-wrap:anywhere}
+th{color:#c7d5e4}
+small{color:var(--muted)}
+.footer{color:var(--muted);font-size:13px;text-align:center;padding:18px}
+@media(max-width:520px){.wrap{padding:10px}.card{padding:13px}.row>*{min-width:100%}}
 </style>
 </head>
 <body>
-<header><h1>🏍️ Noor Rider Admin Panel</h1><p>Ride Free. Ride Smart.</p></header>
-<main>
-<section class="card">
-<h2>Create account</h2>
-<p>Register as a motorcycle passenger or driver.</p>
-<label for="role">Choose your role</label>
-<select id="role"><option value="passenger">Passenger</option><option value="driver">Driver</option></select>
-<label for="name">Full name</label><input id="name" autocomplete="name" placeholder="Enter your full name">
-<label for="phone">Mobile number</label><input id="phone" autocomplete="tel" placeholder="Mobile number">
-<label for="email">Email address</label><input id="email" type="email" placeholder="you@example.com">
-<label for="password">Password (at least 8 characters)</label><input id="password" type="password" minlength="8" placeholder="Create a password">
-<label for="referral">Referral code (optional)</label><input id="referral" placeholder="Referral code">
-<button id="registerButton" type="button" onclick="registerUser()">Create account</button>
-<p class="note">Email confirmation may be required. Use an email you can access.</p>
-<p id="registerMessage" class="message" aria-live="polite"></p>
+<header>
+<h1>Noor Rider Admin Panel</h1>
+<p>Driver • Passenger • Wallet • Referrals • Payouts</p>
+</header>
+<div class="wrap">
+<div id="configWarning" class="status error hidden"></div>
+<div id="message" class="status hidden" role="status" aria-live="polite"></div>
+
+<section id="authSection" class="grid">
+  <div class="card">
+    <h2>Sign in</h2>
+    <form id="loginForm">
+      <label for="loginEmail">Email</label>
+      <input id="loginEmail" type="email" autocomplete="username" required>
+      <label for="loginPassword">Password</label>
+      <input id="loginPassword" type="password" autocomplete="current-password" required>
+      <button type="submit">Sign in</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Create account</h2>
+    <form id="signupForm">
+      <label for="signupName">Full name</label>
+      <input id="signupName" required maxlength="150">
+      <label for="signupPhone">Phone</label>
+      <input id="signupPhone" maxlength="30">
+      <label for="signupRole">Account type</label>
+      <select id="signupRole">
+        <option value="passenger">Passenger</option>
+        <option value="driver">Driver</option>
+      </select>
+      <label for="signupReferral">Referral code (optional)</label>
+      <input id="signupReferral" maxlength="30" autocapitalize="characters">
+      <label for="signupEmail">Email</label>
+      <input id="signupEmail" type="email" autocomplete="username" required>
+      <label for="signupPassword">Password (minimum 8 characters)</label>
+      <input id="signupPassword" type="password" minlength="8" autocomplete="new-password" required>
+      <button type="submit">Create account</button>
+      <p class="hint">If email confirmation is enabled, confirm your email before signing in.</p>
+    </form>
+  </div>
 </section>
 
-<section class="card">
-<h2>🔐 Sign in</h2>
-<label for="loginEmail">Email address</label><input id="loginEmail" type="email" placeholder="Email address">
-<label for="loginPassword">Password</label><input id="loginPassword" type="password" placeholder="Password">
-<button id="loginButton" type="button" onclick="signIn()">Sign in</button>
-<button class="secondary hidden" id="signOutButton" type="button" onclick="signOut()">Sign out</button>
-<p id="authMessage" class="message" aria-live="polite"></p>
+<section id="appSection" class="hidden">
+  <div class="card">
+    <div class="row">
+      <div>
+        <h2 id="welcome">Welcome</h2>
+        <p class="muted" id="accountInfo"></p>
+      </div>
+      <div>
+        <button id="refreshBtn" class="secondary">Refresh</button>
+        <button id="logoutBtn" class="danger">Sign out</button>
+      </div>
+    </div>
+    <div class="balance" id="walletBalance">Rs. 0.00</div>
+    <div class="muted" id="walletDetail">Wallet balance</div>
+    <p>My referral code:
+      <strong id="myReferral">Loading…</strong>
+      <button class="small secondary" id="copyReferral" type="button">Copy code</button>
+    </p>
+  </div>
+
+  <div class="tabs">
+    <button class="secondary" data-tab="walletTab">Wallet & Top-up</button>
+    <button class="secondary" data-tab="withdrawTab">Withdraw</button>
+    <button class="secondary" data-tab="historyTab">History</button>
+    <button class="secondary hidden" id="adminTabButton" data-tab="adminTab">Admin controls</button>
+  </div>
+
+  <div id="walletTab" class="tabPanel">
+    <div class="grid">
+      <div class="card">
+        <h2>Request a top-up</h2>
+        <p class="hint">Send payment using your selected method first. Wallet credit happens only after admin verification.</p>
+        <form id="topupForm">
+          <label for="topupMethod">Payment method</label>
+          <select id="topupMethod">
+            <option>JazzCash</option>
+            <option>Easypaisa</option>
+            <option>Bank Account</option>
+          </select>
+          <label for="topupAmount">Amount (PKR)</label>
+          <input id="topupAmount" type="number" min="1" max="10000000" step="0.01" required>
+          <label for="topupReference">Sender transaction/reference ID</label>
+          <input id="topupReference" maxlength="120" required>
+          <label for="topupNote">Note (optional)</label>
+          <textarea id="topupNote" maxlength="300"></textarea>
+          <button type="submit">Submit top-up request</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>My payout details</h2>
+        <p class="hint">Save where approved withdrawals should be sent. Actual payments are made separately.</p>
+        <form id="payoutForm">
+          <label for="payoutMethod">Method</label>
+          <select id="payoutMethod">
+            <option>JazzCash</option>
+            <option>Easypaisa</option>
+            <option>Bank Account</option>
+          </select>
+          <label for="payoutHolder">Account holder name</label>
+          <input id="payoutHolder" maxlength="150" required>
+          <label for="payoutNumber">Wallet or bank account number / IBAN</label>
+          <input id="payoutNumber" maxlength="120" required>
+          <button type="submit">Save payout details</button>
+        </form>
+      </div>
+    </div>
+    <div class="card">
+      <h2>My top-up requests</h2>
+      <div id="myTopups" class="tablewrap muted">Loading…</div>
+    </div>
+  </div>
+
+  <div id="withdrawTab" class="tabPanel hidden">
+    <div class="card">
+      <h2>Request withdrawal</h2>
+      <p class="hint">Available to driver accounts. Pending requests reserve the amount. Admin approval deducts the wallet balance.</p>
+      <form id="withdrawForm">
+        <label for="withdrawAmount">Amount (PKR)</label>
+        <input id="withdrawAmount" type="number" min="1" max="10000000" step="0.01" required>
+        <button type="submit">Request withdrawal</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>My withdrawal requests</h2>
+      <div id="myWithdrawals" class="tablewrap muted">Loading…</div>
+    </div>
+  </div>
+
+  <div id="historyTab" class="tabPanel hidden">
+    <div class="card">
+      <h2>Wallet transaction history</h2>
+      <div id="myTransactions" class="tablewrap muted">Loading…</div>
+    </div>
+    <div class="card">
+      <h2>My referrals</h2>
+      <div id="myReferrals" class="tablewrap muted">Loading…</div>
+      <p class="hint">Referral bonuses are Rs. 50 each after admin approval and eligibility checks.</p>
+    </div>
+  </div>
+
+  <div id="adminTab" class="tabPanel hidden">
+    <div class="card">
+      <h2>Admin: Manual wallet top-up</h2>
+      <form id="adminTopupForm">
+        <label for="adminUserId">User UUID</label>
+        <input id="adminUserId" required placeholder="User ID from profile list">
+        <label for="adminTopupAmount">Amount (PKR)</label>
+        <input id="adminTopupAmount" type="number" min="0.01" step="0.01" required>
+        <label for="adminTopupNote">Reason</label>
+        <input id="adminTopupNote" maxlength="300" value="Admin top-up">
+        <button type="submit">Credit wallet</button>
+      </form>
+    </div>
+    <div class="card"><h2>Admin: User profiles</h2><div id="adminProfiles" class="tablewrap muted">Loading…</div></div>
+    <div class="card"><h2>Admin: Pending top-ups</h2><div id="adminTopups" class="tablewrap muted">Loading…</div></div>
+    <div class="card"><h2>Admin: Referral claims</h2><div id="adminReferrals" class="tablewrap muted">Loading…</div></div>
+    <div class="card"><h2>Admin: Withdrawal requests</h2><div id="adminWithdrawals" class="tablewrap muted">Loading…</div></div>
+  </div>
 </section>
 
-<section class="card hidden" id="accountCard">
-<h2>👤 My account</h2><p id="accountInfo" class="message"></p>
-<p>Your referral code: <strong id="myReferral">—</strong></p>
-</section>
+<div class="footer">Noor Rider Admin Panel • Never share your password or Supabase secret/service-role key.</div>
+</div>
 
-<section class="card hidden" id="payoutCard">
-<h2>💳 Payout method</h2>
-<label for="payout">Payment method</label>
-<select id="payout"><option>JazzCash</option><option>Easypaisa</option><option>Bank Account</option></select>
-<label for="account">Account holder name</label><input id="account" placeholder="Account holder name">
-<label for="accountNumber">Wallet or bank account number</label><input id="accountNumber" placeholder="Wallet or bank account number">
-<button type="button" onclick="savePayout()">Save payout details</button>
-<p id="payoutMessage" class="message" aria-live="polite"></p>
-<p class="note">Payout details must be protected by database access policies.</p>
-</section>
-
-<section class="card hidden" id="adminCard">
-<h2>🛡️ Admin dashboard</h2>
-<p class="note">Admin access must be authorized in Supabase.</p>
-<button type="button" onclick="loadAdminData()">Refresh admin records</button>
-<h3>Referral requests</h3><div id="referralRecords" class="message">No records loaded.</div>
-<h3>Payout records</h3><div id="payoutRecords" class="message">No records loaded.</div>
-</section>
-
-<section class="card">
-<h2>🎁 Referral program</h2>
-<p class="note">Referral rewards require server-side verification and admin approval.</p>
-</section>
-<p class="note">Never put a Supabase secret/service_role key or an admin password in this HTML file.</p>
-</main>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL="https://wzozoobgkunfvoxhpnwh.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY="sb_publishable_FAwgV6Mg7D3xvl8Agy_D3w__YSrzlju";
-let supabaseClient=null;
-let currentUser=null;
+(() => {
+  const SUPABASE_URL = "https://wzozoobgkunfvoxhpnwh.supabase.co";
+  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_FAwgV6Mg7D3xvl8Agy_D3w__YSrzlju";
 
-function setupClient(){
-  if(!window.supabase?.createClient) throw new Error("Supabase library did not load. Check your internet connection.");
-  if(!SUPABASE_URL.startsWith("https://")||!SUPABASE_PUBLISHABLE_KEY.startsWith("sb_publishable_"))
-    throw new Error("Check your Supabase Project URL and publishable key.");
-  if(!supabaseClient) supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
-    auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
-  });
-  return supabaseClient;
-}
-function show(id,text){const e=document.getElementById(id);if(e)e.textContent=text;}
-function setHidden(id,hidden){document.getElementById(id)?.classList.toggle("hidden",hidden);}
-function friendlyError(error){
-  const m=error?.message||"Something went wrong. Please try again.";
-  if(/invalid login credentials/i.test(m))return "Email or password is incorrect. If newly registered, confirm your email first.";
-  if(/email not confirmed/i.test(m))return "Confirm your email using the Supabase email, then sign in.";
-  if(/failed to fetch|networkerror|load failed/i.test(m))return "Could not reach Supabase. Check internet and project settings.";
-  return m;
-}
-function busy(id,on,label){
-  const b=document.getElementById(id);
-  if(!b.dataset.originalText)b.dataset.originalText=b.textContent;
-  b.disabled=on;b.textContent=on?label:b.dataset.originalText;
-}
-  
-async function registerUser(){
-  busy("registerButton",true,"Creating account...");
-  show("registerMessage","Please wait...");
-  try{
-    const c=setupClient();
-    const name=document.getElementById("name").value.trim();
-    const phone=document.getElementById("phone").value.trim();
-    const role=document.getElementById("role").value;
-    const email=document.getElementById("email").value.trim();
-    const password=document.getElementById("password").value;
-    const referral=document.getElementById("referral").value.trim().toUpperCase();
-
-    if(!name||!phone||!email||!password)throw new Error("Complete your name, phone, email and password.");
-    if(password.length<8)throw new Error("Password must be at least 8 characters.");
-
-    const {data,error}=await c.auth.signUp({
-      email,password,
-      options:{data:{
-        full_name:name,phone,role,
-        referral_code_used:referral||null
-      }}
-    });
-    if(error)throw error;
-    if(data.session){
-      show("registerMessage","Account created. You are signed in.");
-      await refreshSession();
-    }else{
-      show("registerMessage","Registration submitted. Check your email to confirm the account, then sign in.");
-    }
-  }catch(e){show("registerMessage",friendlyError(e));}
-  finally{busy("registerButton",false,"");}
-}
-
-async function signIn(){
-  busy("loginButton",true,"Signing in...");
-  show("authMessage","Signing in...");
-  try{
-    const c=setupClient();
-    const email=document.getElementById("loginEmail").value.trim();
-    const password=document.getElementById("loginPassword").value;
-    if(!email||!password)throw new Error("Enter your email and password.");
-
-    const {data,error}=await c.auth.signInWithPassword({email,password});
-    if(error)throw error;
-    if(!data.session||!data.user)throw new Error("Login session missing. Check email confirmation and Supabase Auth settings.");
-    currentUser=data.user;
-    show("authMessage","Signed in. Checking your account...");
-    await refreshSession();
-  }catch(e){show("authMessage",friendlyError(e));}
-  finally{busy("loginButton",false,"");}
-}
-
-async function signOut(){
-  try{
-    const {error}=await setupClient().auth.signOut();
-    if(error)throw error;
-    currentUser=null;
-    updateUI(null);
-    show("authMessage","Signed out.");
-  }catch(e){show("authMessage",friendlyError(e));}
-}
-
-async function refreshSession(){
-  const {data,error}=await setupClient().auth.getSession();
-  if(error)throw error;
-  currentUser=data.session?data.session.user:null;
-  await updateUI(currentUser);
-}
-
-async function updateUI(user){
-  const signedIn=!!user;
-  setHidden("accountCard",!signedIn);
-  setHidden("payoutCard",!signedIn);
-  setHidden("signOutButton",!signedIn);
-  setHidden("loginButton",signedIn);
-  setHidden("adminCard",true);
-
-  if(!signedIn){
-    show("accountInfo","");
-    show("myReferral","—");
-    return;
-  }
-
-  show("accountInfo","Signed in as "+(user.email||"user"));
-  try{
-    const c=setupClient();
-    const {data:profile,error:profileError}=await c.from("profiles")
-      .select("full_name,phone,role,referral_code")
-      .eq("id",user.id).maybeSingle();
-    if(profileError)throw profileError;
-
-    if(profile){
-      show("accountInfo",
-        "Name: "+(profile.full_name||user.user_metadata?.full_name||"—")+
-        "\nPhone: "+(profile.phone||user.user_metadata?.phone||"—")+
-        "\nRole: "+(profile.role||user.user_metadata?.role||"—")+
-        "\nEmail: "+(user.email||"—"));
-      show("myReferral",profile.referral_code||"Pending");
-    }else{
-      show("accountInfo","Signed in as "+(user.email||"user")+
-        "\nProfile row not found. Database profile setup is required.");
-    }
-
-    const {data:adminRow,error:adminError}=await c.from("admin_users")
-      .select("user_id").eq("user_id",user.id).maybeSingle();
-
-    if(adminError){
-      if(/relation .* does not exist|schema cache/i.test(adminError.message)){
-        show("authMessage","Signed in, but admin_users table is missing. Admin dashboard remains locked.");
-      }else if(!/permission|policy|row-level security/i.test(adminError.message)){
-        show("authMessage","Signed in, but admin access check failed: "+friendlyError(adminError));
+  const $ = id => document.getElementById(id);
+  const client = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY,
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
       }
     }
+  );
 
-    const isAdmin=!!adminRow&&!adminError;
-    setHidden("adminCard",!isAdmin);
-    if(isAdmin)await loadAdminData();
-  }catch(e){
-    show("authMessage","Signed in, but database setup needs checking: "+friendlyError(e));
+  let currentUser = null;
+  let currentProfile = null;
+  let isAdmin = false;
+  let loadingApp = false;
+
+  function message(text, kind = "") {
+    const el = $("message");
+    el.textContent = text;
+    el.className = "status" + (kind ? " " + kind : "");
+    el.classList.remove("hidden");
   }
+
+  function clearMessage() {
+    $("message").classList.add("hidden");
   }
-  
-async function savePayout(){
-  show("payoutMessage","Saving...");
-  try{
-    const c=setupClient();
-    if(!currentUser)throw new Error("Please sign in first.");
-    const holder=document.getElementById("account").value.trim();
-    const number=document.getElementById("accountNumber").value.trim();
-    const method=document.getElementById("payout").value;
-    if(!holder||!number)throw new Error("Enter the account holder name and account number.");
 
-    const {error}=await c.from("payout_methods").upsert({
-      user_id:currentUser.id,
-      method,
-      account_holder:holder,
-      account_number:number,
-      updated_at:new Date().toISOString()
-    },{onConflict:"user_id"});
-    if(error)throw error;
-    show("payoutMessage","Payout details saved.");
-  }catch(e){show("payoutMessage",friendlyError(e));}
-}
-
-async function loadAdminData(){
-  if(!currentUser){show("authMessage","Please sign in first.");return;}
-  show("referralRecords","Loading...");
-  show("payoutRecords","Loading...");
-  try{
-    const c=setupClient();
-    const {data:refs,error:refsError}=await c.from("referral_claims")
-      .select("id,referrer_user_id,referred_user_id,referral_code,status,created_at")
-      .order("created_at",{ascending:false}).limit(100);
-    if(refsError)throw refsError;
-
-    show("referralRecords",refs?.length?refs.map(r=>
-      "Status: "+(r.status||"—")+
-      " | Code: "+(r.referral_code||"—")+
-      " | Created: "+(r.created_at||"—")
-    ).join("\n\n"):"No referral records found.");
-
-    const {data:payouts,error:payoutError}=await c.from("payout_methods")
-      .select("user_id,method,account_holder,updated_at")
-      .order("updated_at",{ascending:false}).limit(100);
-    if(payoutError)throw payoutError;
-
-    show("payoutRecords",payouts?.length?payouts.map(p=>
-      "User ID: "+p.user_id+
-      " | Method: "+p.method+
-      " | Holder: "+(p.account_holder||"—")+
-      " | Updated: "+(p.updated_at||"—")
-    ).join("\n\n"):"No payout records found.");
-  }catch(e){
-    show("referralRecords","Could not load records: "+friendlyError(e));
-    show("payoutRecords","Admin access or database setup may be incomplete.");
-  }
-}
-
-window.addEventListener("load",async()=>{
-  try{
-    const c=setupClient();
-    await refreshSession();
-    c.auth.onAuthStateChange((_event,session)=>{
-      currentUser=session?session.user:null;
-      Promise.resolve().then(()=>updateUI(currentUser));
+  function money(n) {
+    return "Rs. " + Number(n || 0).toLocaleString("en-PK", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     });
-  }catch(e){
-    show("authMessage",friendlyError(e));
   }
-});
+
+  function esc(v) {
+    return String(v ?? "").replace(/[&<>"']/g, c => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;",
+      '"': "&quot;", "'": "&#39;"
+    })[c]);
+  }
+
+  function date(v) {
+    return v ? new Date(v).toLocaleString() : "—";
+  }
+
+  function table(headers, rows) {
+    if (!rows || !rows.length) return '<p class="muted">No records found.</p>';
+    return '<table><thead><tr>' +
+      headers.map(h => '<th>' + esc(h) + '</th>').join('') +
+      '</tr></thead><tbody>' +
+      rows.map(r => '<tr>' + r.map(x => '<td>' + x + '</td>').join('') + '</tr>').join('') +
+      '</tbody></table>';
+  }
+
+  function showAuth() {
+    $("authSection").classList.remove("hidden");
+    $("appSection").classList.add("hidden");
+  }
+
+  function showApp() {
+    $("authSection").classList.add("hidden");
+    $("appSection").classList.remove("hidden");
+  }
+
+  async function checkAdmin() {
+    const { data: { user }, error: authError } = await client.auth.getUser();
+    if (authError) throw authError;
+    if (!user) throw new Error("Your session expired. Please sign in again.");
+
+    const { data, error } = await client
+      .from("admin_users")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(
+        "Admin permission check failed: " + error.message +
+        ". Check the admin_users table and its SELECT policy."
+      );
+    }
+
+    return Boolean(data && data.user_id === user.id);
+  }
+
+  async function loadApp() {
+    if (loadingApp) return;
+    loadingApp = true;
+
+    try {
+      const { data: { user }, error: authError } = await client.auth.getUser();
+      if (authError) throw authError;
+
+      if (!user) {
+        currentUser = null;
+        currentProfile = null;
+        isAdmin = false;
+        showAuth();
+        return;
+      }
+
+      currentUser = user;
+      showApp();
+      message("Signed in. Checking your account...");
+
+      const { data: profile, error: profileError } = await client
+        .from("profiles")
+        .select("id,full_name,phone,role,referral_code")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (profileError) {
+        throw new Error("Profile check failed: " + profileError.message);
+      }
+
+      currentProfile = profile;
+      $("welcome").textContent =
+        "Welcome" + (profile?.full_name ? " " + profile.full_name : "");
+      $("accountInfo").textContent =
+        (user.email || "") + " • " + (profile?.role || "profile pending");
+      $("myReferral").textContent = profile?.referral_code || "Not available";
+
+      // This check uses the signed-in user's UUID, not the email alone.
+      isAdmin = await checkAdmin();
+
+      $("adminTabButton").classList.toggle("hidden", !isAdmin);
+      $("withdrawForm").classList.toggle("hidden", profile?.role !== "driver");
+
+      await Promise.all([
+        loadWallet(),
+        loadPayout(),
+        loadTopups(),
+        loadWithdrawals(),
+        loadTransactions(),
+        loadReferrals()
+      ]);
+
+      if (isAdmin) await loadAdmin();
+
+      message(
+        isAdmin
+          ? "Admin access verified. Welcome to Noor Rider Admin Panel."
+          : "Signed in successfully. This account is not registered as an admin.",
+        isAdmin ? "ok" : ""
+      );
+    } catch (e) {
+      message("Account setup error: " + (e.message || String(e)), "error");
+    } finally {
+      loadingApp = false;
+    }
+  }
+
+  async function loadWallet() {
+    const { data, error } = await client.rpc("get_my_wallet");
+    if (error) throw new Error("Wallet: " + error.message);
+
+    const w = Array.isArray(data) ? data[0] : data;
+    $("walletBalance").textContent = money(w?.balance || 0);
+    $("walletDetail").textContent =
+      "Available: " + money(w?.available || 0) +
+      " • Pending withdrawals: " + money(w?.reserved || 0);
+  }
+
+  async function loadPayout() {
+    const { data, error } = await client
+      .from("payout_methods")
+      .select("method,account_holder,account_number")
+      .eq("user_id", currentUser.id)
+      .maybeSingle();
+
+    if (error) throw new Error("Payout details: " + error.message);
+
+    if (data) {
+      $("payoutMethod").value = data.method;
+      $("payoutHolder").value = data.account_holder;
+      $("payoutNumber").value = data.account_number;
+    }
+  }
+
+  async function loadTopups() {
+    const { data, error } = await client
+      .from("topup_requests")
+      .select("id,amount,method,sender_reference,status,requested_at")
+      .eq("user_id", currentUser.id)
+      .order("requested_at", { ascending: false })
+      .limit(50);
+
+    if (error) throw new Error("Top-up requests: " + error.message);
+
+    $("myTopups").innerHTML = table(
+      ["Amount", "Method", "Reference", "Status", "Requested"],
+      (data || []).map(x => [
+        esc(money(x.amount)),
+        esc(x.method),
+        esc(x.sender_reference),
+        '<span class="pill">' + esc(x.status) + '</span>',
+        esc(date(x.requested_at))
+      ])
+    );
+  }
+
+  async function loadWithdrawals() {
+    const { data, error } = await client
+      .from("withdrawal_requests")
+      .select("id,amount,method,account_holder,status,requested_at")
+      .eq("user_id", currentUser.id)
+      .order("requested_at", { ascending: false })
+      .limit(50);
+
+    if (error) throw new Error("Withdrawals: " + error.message);
+
+    $("myWithdrawals").innerHTML = table(
+      ["Amount", "Method", "Destination", "Status", "Requested"],
+      (data || []).map(x => [
+        esc(money(x.amount)),
+        esc(x.method),
+        esc(x.account_holder),
+        '<span class="pill">' + esc(x.status) + '</span>',
+        esc(date(x.requested_at))
+      ])
+    );
+  }
+
+  async function loadTransactions() {
+    const { data, error } = await client
+      .from("wallet_transactions")
+      .select("amount,transaction_type,note,created_at")
+      .eq("user_id", currentUser.id)
+      .order("created_at", { ascending: false })
+      .limit(100);
+
+    if (error) throw new Error("Wallet history: " + error.message);
+
+    $("myTransactions").innerHTML = table(
+      ["Amount", "Type", "Note", "Date"],
+      (data || []).map(x => [
+        esc(money(x.amount)),
+        esc(x.transaction_type),
+        esc(x.note),
+        esc(date(x.created_at))
+      ])
+    );
+  }
+
+  async function loadReferrals() {
+    const { data, error } = await client
+      .from("referral_claims")
+      .select("id,referral_code,status,created_at")
+      .or(
+        "referrer_user_id.eq." + currentUser.id +
+        ",referred_user_id.eq." + currentUser.id
+      )
+      .order("created_at", { ascending: false })
+      .limit(100);
+
+    if (error) throw new Error("Referral history: " + error.message);
+
+    $("myReferrals").innerHTML = table(
+      ["Code", "Status", "Created"],
+      (data || []).map(x => [
+        esc(x.referral_code),
+        '<span class="pill">' + esc(x.status) + '</span>',
+        esc(date(x.created_at))
+      ])
+    );
+  }
+</script>
+
+  async function loadAdmin() {
+    if (!isAdmin) throw new Error("Admin access required.");
+
+    const [profiles, topups, refs, withdrawals] = await Promise.all([
+      client.from("profiles")
+        .select("id,full_name,phone,role,referral_code,created_at")
+        .order("created_at", { ascending: false }).limit(100),
+
+      client.from("topup_requests")
+        .select("id,user_id,amount,method,sender_reference,note,status")
+        .eq("status", "pending")
+        .order("requested_at", { ascending: true }).limit(100),
+
+      client.from("referral_claims")
+        .select("id,referrer_user_id,referred_user_id,referral_code,status")
+        .eq("status", "pending")
+        .order("created_at", { ascending: true }).limit(100),
+
+      client.from("withdrawal_requests")
+        .select("id,user_id,amount,method,account_holder,account_number,status")
+        .in("status", ["pending", "approved"])
+        .order("requested_at", { ascending: true }).limit(100)
+    ]);
+
+    for (const result of [profiles, topups, refs, withdrawals]) {
+      if (result.error) throw result.error;
+    }
+
+    $("adminProfiles").innerHTML = table(
+      ["Name", "Role", "Phone", "User UUID", "Referral"],
+      (profiles.data || []).map(x => [
+        esc(x.full_name),
+        esc(x.role),
+        esc(x.phone),
+        '<button class="small secondary" data-copy="' + esc(x.id) +
+          '" type="button">Copy UUID</button><br><small>' + esc(x.id) + '</small>',
+        esc(x.referral_code)
+      ])
+    );
+
+    $("adminTopups").innerHTML = table(
+      ["Amount", "Method", "Reference", "User UUID", "Action"],
+      (topups.data || []).map(x => [
+        esc(money(x.amount)),
+        esc(x.method),
+        esc(x.sender_reference),
+        esc(x.user_id),
+        '<button class="small" data-topup="' + esc(x.id) +
+          '" data-approve="true" type="button">Approve & credit</button>' +
+        '<button class="small danger" data-topup="' + esc(x.id) +
+          '" data-approve="false" type="button">Reject</button>'
+      ])
+    );
+
+    $("adminReferrals").innerHTML = table(
+      ["Code", "Referrer UUID", "New user UUID", "Action"],
+      (refs.data || []).map(x => [
+        esc(x.referral_code),
+        esc(x.referrer_user_id),
+        esc(x.referred_user_id),
+        '<button class="small" data-referral="' + esc(x.id) +
+          '" data-approve="true" type="button">Approve bonus</button>' +
+        '<button class="small danger" data-referral="' + esc(x.id) +
+          '" data-approve="false" type="button">Reject</button>'
+      ])
+    );
+
+    $("adminWithdrawals").innerHTML = table(
+      ["Amount", "Method", "Account holder", "User UUID", "Status", "Action"],
+      (withdrawals.data || []).map(x => [
+        esc(money(x.amount)),
+        esc(x.method),
+        esc(x.account_holder) + "<br>" + esc(x.account_number),
+        esc(x.user_id),
+        esc(x.status),
+        x.status === "pending"
+          ? '<button class="small" data-withdraw="' + esc(x.id) +
+            '" data-action="approve" type="button">Approve & deduct</button>' +
+            '<button class="small danger" data-withdraw="' + esc(x.id) +
+            '" data-action="reject" type="button">Reject</button>'
+          : '<button class="small" data-paid="' + esc(x.id) +
+            '" type="button">Mark paid</button>'
+      ])
+    );
+  }
+
+  // Use delegated events for the admin action buttons.
+  $("adminTab").addEventListener("click", async event => {
+    const b = event.target.closest("button");
+    if (!b) return;
+
+    try {
+      if (b.dataset.copy) {
+        await navigator.clipboard.writeText(b.dataset.copy);
+        message("User UUID copied.", "ok");
+        return;
+      }
+
+      if (b.dataset.topup) {
+        const approve = b.dataset.approve === "true";
+        const note = prompt("Admin note (optional):", "");
+        if (note === null) return;
+
+        const { error } = await client.rpc("admin_review_topup", {
+          p_request_id: b.dataset.topup,
+          p_approve: approve,
+          p_note: note
+        });
+        if (error) throw error;
+        message(approve ? "Top-up approved." : "Top-up rejected.", "ok");
+      }
+
+      if (b.dataset.referral) {
+        const approve = b.dataset.approve === "true";
+        const { error } = await client.rpc("admin_review_referral", {
+          p_claim_id: Number(b.dataset.referral),
+          p_approve: approve
+        });
+        if (error) throw error;
+        message(approve ? "Referral approved." : "Referral rejected.", "ok");
+      }
+
+      if (b.dataset.withdraw) {
+        const action = b.dataset.action;
+        const note = prompt("Admin note (optional):", "");
+        if (note === null) return;
+
+        const { error } = await client.rpc("admin_review_withdrawal", {
+          p_request_id: b.dataset.withdraw,
+          p_action: action,
+          p_note: note
+        });
+        if (error) throw error;
+        message("Withdrawal request updated.", "ok");
+      }
+
+      if (b.dataset.paid) {
+        const note = prompt("Payment transaction/reference ID:", "");
+        if (note === null) return;
+
+        const { error } = await client.rpc("admin_mark_withdrawal_paid", {
+          p_request_id: b.dataset.paid,
+          p_note: note
+        });
+        if (error) throw error;
+        message("Withdrawal marked as paid.", "ok");
+      }
+
+      await loadApp();
+    } catch (e) {
+      message("Admin action failed: " + (e.message || String(e)), "error");
+    }
+  });
+
+  $("loginForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    try {
+      clearMessage();
+      const { error } = await client.auth.signInWithPassword({
+        email: $("loginEmail").value.trim(),
+        password: $("loginPassword").value
+      });
+      if (error) throw error;
+      await loadApp();
+    } catch (e) {
+      message("Sign-in failed: " + (e.message || String(e)), "error");
+    }
+  });
+
+  $("signupForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    try {
+      clearMessage();
+      const { data, error } = await client.auth.signUp({
+        email: $("signupEmail").value.trim(),
+        password: $("signupPassword").value,
+        options: {
+          data: {
+            full_name: $("signupName").value.trim(),
+            phone: $("signupPhone").value.trim(),
+            role: $("signupRole").value,
+            referral_code_used: $("signupReferral").value.trim().toUpperCase()
+          }
+        }
+      });
+      if (error) throw error;
+
+      if (data.session) {
+        await loadApp();
+        message("Account created successfully.", "ok");
+      } else {
+        message("Account created. Check your email if confirmation is required.", "ok");
+      }
+    } catch (e) {
+      message("Registration failed: " + (e.message || String(e)), "error");
+    }
+  });
+
+  $("logoutBtn").addEventListener("click", async () => {
+    try {
+      const { error } = await client.auth.signOut();
+      if (error) throw error;
+      currentUser = null;
+      currentProfile = null;
+      isAdmin = false;
+      showAuth();
+      message("Signed out.", "ok");
+    } catch (e) {
+      message("Sign-out failed: " + (e.message || String(e)), "error");
+    }
+  });
+
+  $("refreshBtn").addEventListener("click", async () => {
+    try {
+      await loadApp();
+    } catch (e) {
+      message("Refresh failed: " + (e.message || String(e)), "error");
+    }
+  });
+
+  $("copyReferral").addEventListener("click", async () => {
+    if (!currentProfile?.referral_code) {
+      message("No referral code is available yet.", "error");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(currentProfile.referral_code);
+      message("Referral code copied.", "ok");
+    } catch {
+      message("Copy unavailable. Please copy the code manually.", "error");
+    }
+  });
+
+  document.querySelectorAll("[data-tab]").forEach(button => {
+    button.addEventListener("click", () => {
+      if (button.dataset.tab === "adminTab" && !isAdmin) {
+        message("Admin access required.", "error");
+        return;
+      }
+      document.querySelectorAll(".tabPanel").forEach(panel =>
+        panel.classList.add("hidden")
+      );
+      $(button.dataset.tab).classList.remove("hidden");
+    });
+  });
+
+  $("payoutForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    try {
+      const { error } = await client.from("payout_methods").upsert({
+        user_id: currentUser.id,
+        method: $("payoutMethod").value,
+        account_holder: $("payoutHolder").value.trim(),
+        account_number: $("payoutNumber").value.trim(),
+        updated_at: new Date().toISOString()
+      }, { onConflict: "user_id" });
+
+      if (error) throw error;
+      message("Payout details saved.", "ok");
+    } catch (e) {
+      message("Payout save failed: " + (e.message || String(e)), "error");
+    }
+  });
+
+  $("topupForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    try {
+      const amount = Number($("topupAmount").value);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        throw new Error("Enter a valid amount.");
+      }
+
+      const { error } = await client.from("topup_requests").insert({
+        user_id: currentUser.id,
+        amount,
+        method: $("topupMethod").value,
+        sender_reference: $("topupReference").value.trim(),
+        note: $("topupNote").value.trim()
+      });
+      if (error) throw error;
+
+      $("topupForm").reset();
+      message("Top-up request submitted. Admin verification is required.", "ok");
+      await loadTopups();
+    } catch (e) {
+      message("Top-up failed: " + (e.message || String(e)), "error");
+    }
+  });
+
+  $("withdrawForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    try {
+      const amount = Number($("withdrawAmount").value);
+      const { error } = await client.rpc("request_withdrawal", {
+        p_amount: amount
+      });
+      if (error) throw error;
+
+      $("withdrawForm").reset();
+      message("Withdrawal request submitted.", "ok");
+      await loadWallet();
+      await loadWithdrawals();
+    } catch (e) {
+      message("Withdrawal failed: " + (e.message || String(e)), "error");
+    }
+  });
+
+  $("adminTopupForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    try {
+      if (!isAdmin) throw new Error("Admin access required.");
+
+      const { error } = await client.rpc("admin_wallet_topup", {
+        p_user_id: $("adminUserId").value.trim(),
+        p_amount: Number($("adminTopupAmount").value),
+        p_note: $("adminTopupNote").value.trim()
+      });
+      if (error) throw error;
+
+      message("Wallet credited successfully.", "ok");
+      await loadApp();
+    } catch (e) {
+      message("Admin top-up failed: " + (e.message || String(e)), "error");
+    }
+  });
+
+  client.auth.onAuthStateChange((_event, session) => {
+    currentUser = session?.user || null;
+    setTimeout(() => {
+      loadApp().catch(e =>
+        message("Account check failed: " + (e.message || String(e)), "error")
+      );
+    }, 0);
+  });
+
+  if (!window.supabase) {
+    $("configWarning").textContent =
+      "Supabase library failed to load. Check your internet connection.";
+    $("configWarning").classList.remove("hidden");
+  } else {
+    client.auth.getSession().then(({ data, error }) => {
+      if (error) throw error;
+      if (data.session) return loadApp();
+      showAuth();
+    }).catch(e => {
+      message("Setup error: " + (e.message || String(e)), "error");
+    });
+  }
+})();
 </script>
 </body>
-</html>
+  </html>
+           
